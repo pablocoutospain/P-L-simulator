@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Cabify Club &middot; Simulador P&L</title>
+<title>Cabify Club · Simulador P&L</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap');
@@ -17,6 +17,9 @@ button{font-family:inherit;cursor:pointer} input{font-family:'DM Mono',monospace
 .bg{display:flex;gap:4px;align-items:center;margin-left:auto}
 .bl{font-size:9px;color:var(--g4);font-weight:700;margin-right:2px}
 .pill{padding:5px 11px;border-radius:7px;border:none;background:rgba(255,255,255,.08);color:var(--g3);font-size:11px;font-weight:800;transition:all .15s}
+.cur-toggle{display:flex;background:rgba(255,255,255,.1);border-radius:7px;padding:2px;gap:2px}
+.cur-btn{padding:4px 9px;border-radius:5px;border:none;background:transparent;color:var(--g3);font-size:10px;font-weight:800;cursor:pointer;transition:all .15s}
+.cur-btn.a{background:var(--m60);color:white}
 #scen-bar{background:#12121A;padding:8px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05)}
 .scen-tag{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;background:rgba(255,255,255,.06);border:1.5px solid transparent;cursor:pointer;transition:all .15s}
 .scen-tag.active{border-color:var(--m60);background:rgba(113,69,214,.15)}
@@ -24,7 +27,7 @@ button{font-family:inherit;cursor:pointer} input{font-family:'DM Mono',monospace
 .scen-name{font-size:10px;font-weight:700;color:var(--g3)}
 .scen-tag.active .scen-name{color:white}
 .scen-tag.base .scen-name{color:var(--grn)}
-.scen-ebitda{font-size:10px;font-family:'DM Mono',monospace;font-weight:700}
+.scen-inv{font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--blk)}
 .scen-del{font-size:11px;color:var(--g3);padding:0 2px;line-height:1;background:none;border:none;cursor:pointer}
 .scen-del:hover{color:var(--red)}
 .scen-btn{padding:4px 10px;border-radius:7px;border:none;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
@@ -41,7 +44,7 @@ button{font-family:inherit;cursor:pointer} input{font-family:'DM Mono',monospace
 #main{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
 .kr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .kpi{background:white;border-radius:12px;padding:12px 16px;border:1.5px solid var(--m10);display:flex;flex-direction:column;gap:3px}
-.kpi.dk{background:var(--blk);border-color:transparent}.kpi.ng{border-color:#FEE2E2}
+.kpi.dk{background:var(--blk);border-color:transparent}
 .kl{font-size:9px;font-weight:700;color:var(--g3);letter-spacing:.07em;text-transform:uppercase}
 .kv{font-size:20px;font-weight:800;letter-spacing:-.02em}.ks{font-size:9px;color:var(--g3)}
 .kpi.dk .kl,.kpi.dk .ks{color:var(--g4)}.kpi.dk .kv{color:white}
@@ -63,8 +66,7 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 .if{display:flex;align-items:center;background:var(--m0);border:1.5px solid var(--m10);border-radius:7px;overflow:hidden}
 .if input{flex:1;padding:5px 6px;border:none;background:transparent;font-size:12px;outline:none;width:52px;color:var(--blk)}
 .is{padding:0 5px;font-size:10px;color:var(--g3)}
-.pts-card{background:var(--g1);border-radius:8px;padding:10px 12px;margin-top:6px}
-.pts-t{font-size:10px;font-weight:800;color:var(--g4);margin-bottom:6px}
+.ro-val{display:inline-block;padding:5px 6px;background:#F3F4F6;border:1.5px solid #E5E7EB;border-radius:7px;font-size:12px;font-family:'DM Mono',monospace;color:#6B7280;width:52px;text-align:right}
 .yr{display:flex;gap:4px}.yb{padding:4px 12px;border-radius:7px;border:none;background:var(--m10);color:var(--m60);font-size:11px;font-weight:800;transition:all .15s}.yb.a{background:var(--m60);color:white}
 .ch-hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .ch-t{font-weight:800;font-size:13px}
@@ -113,7 +115,6 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 .mbtn.cancel{background:var(--g1);color:var(--g4)}
 .mbtn.save{background:var(--m60);color:white}
 #reset-toast{position:fixed;bottom:24px;right:24px;background:#1B1B25;color:white;padding:12px 18px;border-radius:10px;font-size:12px;font-weight:700;display:none;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,.3)}
-/* THRESHOLD PANEL */
 #thr-panel{background:#0D0D18;border-bottom:1px solid rgba(255,255,255,.07);padding:12px 18px;display:none;flex-direction:column;gap:10px}
 #thr-panel.show{display:flex}
 .thr-grid{display:grid;grid-template-columns:90px repeat(3,1fr);gap:10px;align-items:start}
@@ -127,7 +128,10 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 .thr-users-row{display:grid;grid-template-columns:90px repeat(3,1fr);gap:10px;margin-top:2px}
 .thr-uval{font-size:10px;font-family:'DM Mono',monospace;color:white;font-weight:700}
 .thr-udelta{font-size:9px;font-weight:700;margin-top:1px}
-
+.ben-crit-row{display:flex;align-items:center;gap:8px;padding:4px 0;flex-wrap:wrap}
+.ben-crit-input{width:52px;padding:4px 6px;border:1.5px solid var(--m10);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)}
+.ben-crit-input:disabled{background:#F3F4F6;color:#9CA3AF;border-color:#E5E7EB}
+.ben-crit-label{font-size:9px;color:var(--g4)}
 </style>
 </head>
 <body>
@@ -145,6 +149,11 @@ input[type=range]{flex:1;accent-color:var(--m60)}
     <button class="pill" data-c="UY" onclick="sC('UY')">UY</button>
     <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px"></div>
     <button class="pill" id="bg-btn" onclick="tG()">Global</button>
+    <div style="width:1px;height:18px;background:rgba(255,255,255,.1);margin:0 4px"></div>
+    <div class="cur-toggle">
+      <button class="cur-btn a" id="cur-usd" onclick="setCur('USD')">USD</button>
+      <button class="cur-btn" id="cur-lcy" onclick="setCur('LCY')">LCY</button>
+    </div>
   </div>
   <div class="bg">
     <button class="pill" data-lv="ALL"    onclick="sL('ALL')">ALL</button>
@@ -180,23 +189,24 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 
 <div id="main">
   <div class="kr">
-    <div class="kpi" id="k0"><span class="kl" id="kl0">EBITDA</span><span class="kv" id="kv0">&mdash;</span><span class="ks" id="ks0">&mdash;</span></div>
-    <div class="kpi ng"><span class="kl">Costes Variables</span><span class="kv" id="kv1" style="color:var(--red)">&mdash;</span><span class="ks" id="ks1">&mdash;</span></div>
-    <div class="kpi"><span class="kl">Usuarios promedio</span><span class="kv" id="kv2" style="color:var(--m60)">&mdash;</span><span class="ks" id="ks2">&mdash;</span></div>
-    <div class="kpi"><span class="kl">EBITDA Global</span><span class="kv" id="kv3" style="color:var(--amb)">&mdash;</span><span class="ks">A&ntilde;o activo &middot; 6 pa&iacute;ses</span></div>
+    <div class="kpi" id="k0"><span class="kl" id="kl0">Inversi&oacute;n</span><span class="kv" id="kv0">&mdash;</span><span class="ks" id="ks0">&mdash;</span></div>
+    <div class="kpi"><span class="kl">% Inv. sobre GMV</span><span class="kv" id="kv1" style="color:var(--blk)">&mdash;</span><span class="ks" id="ks1">&mdash;</span></div>
+    <div class="kpi"><span class="kl">Usuarios mensuales medios</span><span class="kv" id="kv2" style="color:var(--m60)">&mdash;</span><span class="ks" id="ks2">&mdash;</span></div>
+    <div class="kpi"><span class="kl">Inversi&oacute;n Global</span><span class="kv" id="kv3" style="color:var(--amb)">&mdash;</span><span class="ks">A&ntilde;o activo &middot; 6 pa&iacute;ses</span></div>
   </div>
   <div class="cg">
     <div style="display:flex;flex-direction:column;gap:10px">
       <div class="card"><div class="ct" id="ut">Usuarios</div><div id="uc"></div></div>
       <div class="card"><div class="ct" id="bat">Beneficios activos</div><div id="bac"></div></div>
       <div class="card"><div class="ct" id="bt2">Par&aacute;metros</div><div id="bs"><div id="bc"></div></div></div>
+      <div class="card" id="other-inv-card"><div class="ct">Otras inversiones</div><div id="oic"></div></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <div class="ch-hdr">
         <div class="ch-t" id="cht">Evoluci&oacute;n</div>
         <div style="display:flex;gap:8px;align-items:center">
           <div class="yr"><button class="yb a" onclick="sY(2026)">2026</button><button class="yb" onclick="sY(2027)">2027</button></div>
-          <div class="tg"><button class="tb a" onclick="sV('e')">EBITDA</button><button class="tb" onclick="sV('c')">Costes</button><button class="tb" onclick="sV('s')">Apilado</button></div>
+          <div class="tg"><button class="tb a" onclick="sV('e')">Inversi&oacute;n</button><button class="tb" onclick="sV('c')">Costes</button><button class="tb" onclick="sV('s')">Apilado</button></div>
         </div>
       </div>
       <div class="cc"><div class="cw"><canvas id="mc"></canvas></div></div>
@@ -205,7 +215,7 @@ input[type=range]{flex:1;accent-color:var(--m60)}
         <div id="tb"></div><div class="tf" id="tf"></div>
       </div>
       <div class="card">
-        <div class="ct" id="lt" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--g3)">EBITDA por nivel</div>
+        <div class="ct" id="lt" style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--g3)">Inversi&oacute;n por nivel</div>
         <div class="lg" id="lg"></div>
       </div>
     </div>
@@ -220,8 +230,9 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 
 <div id="gv">
   <div class="g5" id="gk"></div>
-  <div class="cc"><div style="font-weight:800;font-size:13px;margin-bottom:10px" id="gct">EBITDA mensual por pa&iacute;s</div><div style="height:240px"><canvas id="gc"></canvas></div></div>
+  <div class="cc"><div style="font-weight:800;font-size:13px;margin-bottom:10px" id="gct">Inversi&oacute;n mensual por pa&iacute;s</div><div style="height:240px"><canvas id="gc"></canvas></div></div>
   <div class="g5" id="gd"></div>
+  <div class="card" id="gmv-card" style="margin-top:4px"><div class="ct">Inversi&oacute;n 2026 vs GMV 2025</div><div id="gmv-content"></div></div>
 </div>
 
 <div id="modal-overlay">
@@ -243,182 +254,158 @@ input[type=range]{flex:1;accent-color:var(--m60)}
 const D = {
   AR:{
     Gold:{
-      u26:[21895, 24836, 24816, 24225, 24342, 24717, 26120, 27520, 29745, 32973, 36451, 40654],u27:[29201, 29456, 29432, 28732, 28871, 29315, 30980, 32639, 35278, 39107, 43232, 48217],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[21895,24836,24816,24225,24342,24717,26120,27520,29745,32973,36451,40654],u27:[29201,29456,29432,28732,28871,29315,30980,32639,35278,39107,43232,48217],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:39738,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.0,cu27:13.0},"Cancelaci\u00f3n gratis":{tu26:0.1,tu27:0.1,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:6.2,cu27:6.2},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:4.7,cu27:4.7}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.0,cu27:13.0},"Cancelación gratis":{tu26:0.1,tu27:0.1,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:6.2,cu27:6.2},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:4.7,cu27:4.7}},
     },
     Plata:{
-      u26:[51534, 59585, 61069, 60076, 61958, 65051, 69711, 73281, 77452, 84873, 91321, 99804],u27:[51534, 53264, 54590, 53703, 55386, 58150, 62316, 65507, 69236, 75869, 81633, 89217],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[51534,59585,61069,60076,61958,65051,69711,73281,77452,84873,91321,99804],u27:[51534,53264,54590,53703,55386,58150,62316,65507,69236,75869,81633,89217],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:99752,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.5,cu27:6.5},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:3.1,cu27:3.1},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:4.7,cu27:4.7}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.5,cu27:6.5},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:3.1,cu27:3.1},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:4.7,cu27:4.7}},
     },
     Bronce:{
-      u26:[50424, 58090, 61380, 60760, 63465, 66361, 71855, 75465, 77972, 84163, 89817, 97452],u27:[50424, 53337, 56358, 55788, 58272, 60931, 65976, 69290, 71592, 77276, 82467, 89478],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[50424,58090,61380,60760,63465,66361,71855,75465,77972,84163,89817,97452],u27:[50424,53337,56358,55788,58272,60931,65976,69290,71592,77276,82467,89478],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:104917,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
     },
     Member:{
-      u26:[611848, 650021, 750188, 718626, 757102, 761335, 826866, 787517, 737162, 782474, 833499, 919300],u27:[611848, 684518, 790001, 756764, 797282, 801739, 870748, 829311, 776283, 824000, 877734, 968088],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[611848,650021,750188,718626,757102,761335,826866,787517,737162,782474,833499,919300],u27:[611848,684518,790001,756764,797282,801739,870748,829311,776283,824000,877734,968088],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:2135942,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
     },
   },
   CL:{
     Gold:{
-      u26:[6586, 7471, 7465, 7287, 7322, 7435, 7857, 8278, 8947, 9918, 10964, 12229],u27:[8784, 8860, 8853, 8642, 8684, 8818, 9319, 9818, 10612, 11764, 13004, 14504],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[6586,7471,7465,7287,7322,7435,7857,8278,8947,9918,10964,12229],u27:[8784,8860,8853,8642,8684,8818,9319,9818,10612,11764,13004,14504],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:12735,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.44,cu27:13.44},"Cancelaci\u00f3n gratis":{tu26:0.08,tu27:0.08,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0.0003,tu27:0.0003,cu26:6.6,cu27:6.6},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:5.4,cu27:5.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.44,cu27:13.44},"Cancelación gratis":{tu26:0.08,tu27:0.08,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0.0003,tu27:0.0003,cu26:6.6,cu27:6.6},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:5.4,cu27:5.4}},
     },
     Plata:{
-      u26:[16619, 19215, 19694, 19374, 19981, 20978, 22481, 23632, 24977, 27370, 29450, 32186],u27:[16619, 17177, 17605, 17318, 17861, 18753, 20096, 21125, 22328, 24467, 26326, 28771],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[16619,19215,19694,19374,19981,20978,22481,23632,24977,27370,29450,32186],u27:[16619,17177,17605,17318,17861,18753,20096,21125,22328,24467,26326,28771],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:32234,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.72,cu27:6.72},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0.0003,tu27:0.0003,cu26:3.3,cu27:3.3},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:5.4,cu27:5.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.72,cu27:6.72},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0.0003,tu27:0.0003,cu26:3.3,cu27:3.3},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:5.4,cu27:5.4}},
     },
     Bronce:{
-      u26:[13339, 15367, 16238, 16074, 16789, 17555, 19009, 19964, 20627, 22265, 23760, 25780],u27:[13339, 14110, 14909, 14759, 15416, 16119, 17454, 18330, 18939, 20443, 21816, 23671],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[13339,15367,16238,16074,16789,17555,19009,19964,20627,22265,23760,25780],u27:[13339,14110,14909,14759,15416,16119,17454,18330,18939,20443,21816,23671],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:27472,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.6,cu27:1.6}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.6,cu27:1.6}},
     },
     Member:{
-      u26:[194565, 206704, 238557, 228520, 240756, 242102, 262940, 250427, 234415, 248824, 265050, 292334],u27:[194565, 217674, 251217, 240648, 253533, 254950, 276895, 263718, 246855, 262029, 279116, 307848],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[194565,206704,238557,228520,240756,242102,262940,250427,234415,248824,265050,292334],u27:[194565,217674,251217,240648,253533,254950,276895,263718,246855,262029,279116,307848],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:636397,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.0,cu27:2.0},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
     },
   },
   CO:{
     Gold:{
-      u26:[6094, 5002, 4931, 4798, 4758, 4605, 4566, 4665, 4747, 4901, 5129, 5360],u27:[2859, 2859, 2818, 2742, 2719, 2632, 2609, 2666, 2713, 2801, 2931, 3063],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[6094,5002,4931,4798,4758,4605,4566,4665,4747,4901,5129,5360],u27:[2859,2859,2818,2742,2719,2632,2609,2666,2713,2801,2931,3063],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:11160,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:11.1,cu27:11.1},"Cancelaci\u00f3n gratis":{tu26:0.13,tu27:0.13,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0.0001,tu27:0.0001,cu26:5.6,cu27:5.6},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:5.1,cu27:5.1}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:11.1,cu27:11.1},"Cancelación gratis":{tu26:0.13,tu27:0.13,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0.0001,tu27:0.0001,cu26:5.6,cu27:5.6},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:5.1,cu27:5.1}},
     },
     Plata:{
-      u26:[14687, 13485, 13185, 12778, 12690, 12201, 12208, 12394, 12561, 12943, 13368, 13630],u27:[8000, 8142, 7961, 7715, 7662, 7367, 7371, 7483, 7583, 7815, 8071, 8229],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[14687,13485,13185,12778,12690,12201,12208,12394,12561,12943,13368,13630],u27:[8000,8142,7961,7715,7662,7367,7371,7483,7583,7815,8071,8229],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:28840,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:5.55,cu27:5.55},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0.0001,tu27:0.0001,cu26:2.8,cu27:2.8},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:5.1,cu27:5.1}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:5.55,cu27:5.55},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0.0001,tu27:0.0001,cu26:2.8,cu27:2.8},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:5.1,cu27:5.1}},
     },
     Bronce:{
-      u26:[11786, 11307, 11045, 10619, 10598, 10193, 10218, 10437, 10474, 10770, 11018, 11244],u27:[6710, 6976, 6814, 6551, 6538, 6288, 6304, 6439, 6462, 6644, 6797, 6937],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[11786,11307,11045,10619,10598,10193,10218,10437,10474,10770,11018,11244],u27:[6710,6976,6814,6551,6538,6288,6304,6439,6462,6644,6797,6937],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:24483,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.5,cu27:1.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.5,cu27:1.5}},
     },
     Member:{
-      u26:[162117, 192525, 186960, 172872, 195291, 188802, 184728, 197634, 195017, 220132, 237213, 250434],u27:[132796, 158237, 153663, 142083, 160510, 155177, 151829, 162436, 160285, 180927, 194966, 205832],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[162117,192525,186960,172872,195291,188802,184728,197634,195017,220132,237213,250434],u27:[132796,158237,153663,142083,160510,155177,151829,162436,160285,180927,194966,205832],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:750790,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.2,cu27:1.2},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
     },
   },
   ES:{
     Gold:{
-      u26:[31871, 36151, 36122, 35262, 35433, 35979, 38021, 40058, 43297, 47997, 53058, 59177],u27:[42506, 42877, 42842, 41823, 42025, 42672, 45095, 47511, 51352, 56926, 62929, 70186],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[31871,36151,36122,35262,35433,35979,38021,40058,43297,47997,53058,59177],u27:[42506,42877,42842,41823,42025,42672,45095,47511,51352,56926,62929,70186],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:76276,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:16.3,cu27:16.3},"Cancelaci\u00f3n gratis":{tu26:0.06,tu27:0.06,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0.0033,tu27:0.0033,cu26:6.2,cu27:9.4},"Millas":{tu26:0.14,tu27:0.14,cu26:14.2,cu27:14.2},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:13.4,cu27:13.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:16.3,cu27:16.3},"Cancelación gratis":{tu26:0.06,tu27:0.06,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0.0033,tu27:0.0033,cu26:6.2,cu27:9.4},"Millas":{tu26:0.14,tu27:0.14,cu26:14.2,cu27:14.2},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:13.4,cu27:13.4}},
     },
     Plata:{
-      u26:[66553, 76951, 78867, 77585, 80016, 84011, 90028, 94639, 100026, 109609, 117936, 128893],u27:[66553, 68788, 70501, 69355, 71528, 75099, 80478, 84600, 89415, 97982, 105425, 115220],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[66553,76951,78867,77585,80016,84011,90028,94639,100026,109609,117936,128893],u27:[66553,68788,70501,69355,71528,75099,80478,84600,89415,97982,105425,115220],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:185151,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:8.15,cu27:8.15},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0.0033,tu27:0.0033,cu26:4.7,cu27:4.7},"Millas":{tu26:0.11,tu27:0.11,cu26:4.5,cu27:4.5},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:13.4,cu27:13.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:8.15,cu27:8.15},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0.0033,tu27:0.0033,cu26:4.7,cu27:4.7},"Millas":{tu26:0.11,tu27:0.11,cu26:4.5,cu27:4.5},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:13.4,cu27:13.4}},
     },
     Bronce:{
-      u26:[45656, 52598, 55577, 55016, 57465, 60087, 65062, 68330, 70600, 76206, 81325, 88238],u27:[45656, 48294, 51030, 50514, 52763, 55171, 59738, 62739, 64824, 69970, 74671, 81018],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[45656,52598,55577,55016,57465,60087,65062,68330,70600,76206,81325,88238],u27:[45656,48294,51030,50514,52763,55171,59738,62739,64824,69970,74671,81018],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:143767,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.04,tu27:0.04,cu26:3.0,cu27:3.0},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:4.0,cu27:4.0}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.04,tu27:0.04,cu26:3.0,cu27:3.0},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:4.0,cu27:4.0}},
     },
     Member:{
-      u26:[511934, 543874, 627684, 601276, 633469, 637011, 691841, 658917, 616785, 654698, 697391, 769181],u27:[511934, 572738, 660995, 633186, 667088, 670817, 728557, 693886, 649518, 689443, 734402, 810002],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[511934,543874,627684,601276,633469,637011,691841,658917,616785,654698,697391,769181],u27:[511934,572738,660995,633186,667088,670817,728557,693886,649518,689443,734402,810002],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:2551036,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.01,tu27:0.01,cu26:2.5,cu27:2.5},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.3,cu27:1.3}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:8.6,cu27:8.6},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.01,tu27:0.01,cu26:2.5,cu27:2.5},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.3,cu27:1.3}},
     },
   },
   PE:{
     Gold:{
-      u26:[4782, 5424, 5419, 5290, 5316, 5398, 5704, 6010, 6496, 7201, 7960, 8878],u27:[6377, 6433, 6428, 6275, 6305, 6402, 6766, 7128, 7704, 8541, 9441, 10530],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[4782,5424,5419,5290,5316,5398,5704,6010,6496,7201,7960,8878],u27:[6377,6433,6428,6275,6305,6402,6766,7128,7704,8541,9441,10530],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:8481,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:12.34,cu27:12.34},"Cancelaci\u00f3n gratis":{tu26:0.07,tu27:0.07,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0.001,tu27:0.001,cu26:5.8,cu27:5.8},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:4.5,cu27:4.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:12.34,cu27:12.34},"Cancelación gratis":{tu26:0.07,tu27:0.07,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0.001,tu27:0.001,cu26:5.8,cu27:5.8},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:4.5,cu27:4.5}},
     },
     Plata:{
-      u26:[11259, 13018, 13342, 13125, 13536, 14212, 15230, 16010, 16921, 18543, 19951, 21805],u27:[11259, 11637, 11927, 11733, 12101, 12705, 13615, 14312, 15126, 16576, 17835, 19492],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[11259,13018,13342,13125,13536,14212,15230,16010,16921,18543,19951,21805],u27:[11259,11637,11927,11733,12101,12705,13615,14312,15126,16576,17835,19492],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:19077,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.17,cu27:6.17},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0.001,tu27:0.001,cu26:2.9,cu27:2.9},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:4.5,cu27:4.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.17,cu27:6.17},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0.001,tu27:0.001,cu26:2.9,cu27:2.9},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:4.5,cu27:4.5}},
     },
     Bronce:{
-      u26:[10488, 12083, 12767, 12638, 13201, 13803, 14946, 15697, 16219, 17506, 18682, 20270],u27:[10488, 11094, 11723, 11604, 12121, 12674, 13723, 14413, 14892, 16074, 17154, 18612],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[10488,12083,12767,12638,13201,13803,14946,15697,16219,17506,18682,20270],u27:[10488,11094,11723,11604,12121,12674,13723,14413,14892,16074,17154,18612],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:17352,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
     },
     Member:{
-      u26:[200407, 212910, 245719, 235381, 247984, 249370, 270835, 257946, 241452, 256294, 273007, 301111],u27:[200407, 224209, 258760, 247873, 261144, 262604, 285208, 271635, 254266, 269896, 287496, 317091],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[200407,212910,245719,235381,247984,249370,270835,257946,241452,256294,273007,301111],u27:[200407,224209,258760,247873,261144,262604,285208,271635,254266,269896,287496,317091],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:550447,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:1.5,cu27:1.5},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
     },
   },
   UY:{
     Gold:{
-      u26:[1420, 1611, 1610, 1571, 1579, 1603, 1694, 1785, 1929, 2139, 2364, 2637],u27:[1894, 1911, 1909, 1864, 1873, 1901, 2009, 2117, 2288, 2537, 2804, 3128],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.588, 0.657, 0.71, 0.752, 0.796],r27:[0.812, 0.826, 0.837, 0.847, 0.858, 0.871, 0.877, 0.882, 0.886, 0.889, 0.892, 0.894],
+      u26:[1420,1611,1610,1571,1579,1603,1694,1785,1929,2139,2364,2637],u27:[1894,1911,1909,1864,1873,1901,2009,2117,2288,2537,2804,3128],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.588,0.657,0.71,0.752,0.796],r27:[0.812,0.826,0.837,0.847,0.858,0.871,0.877,0.882,0.886,0.889,0.892,0.894],
       au:2131,
-      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.0,cu27:13.0},"Cancelaci\u00f3n gratis":{tu26:0.1,tu27:0.1,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:6.2,cu27:6.2},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumplea\u00f1os":{tu26:0.35,tu27:0.35,cu26:4.7,cu27:4.7}},
-      pts:{tu26:0.5,tu27:0.5,avg26:13.3,avg27:13.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.25,tu27:0.25,cu26:13.0,cu27:13.0},"Cancelación gratis":{tu26:0.1,tu27:0.1,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:6.2,cu27:6.2},"Millas":{tu26:0.18,tu27:0.18,cu26:1.5912,cu27:1.5912},"Cashback":{tu26:0,tu27:0.0,cu26:17.4,cu27:17.4},"Viaje gratis cumpleaños":{tu26:0.35,tu27:0.35,cu26:4.7,cu27:4.7}},
     },
     Plata:{
-      u26:[3398, 3929, 4026, 3961, 4085, 4289, 4596, 4832, 5107, 5596, 6021, 6580],u27:[3398, 3512, 3599, 3541, 3652, 3834, 4109, 4319, 4565, 5002, 5382, 5882],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.391, 0.465, 0.525, 0.573, 0.626],r27:[0.647, 0.665, 0.68, 0.693, 0.71, 0.728, 0.738, 0.746, 0.752, 0.757, 0.762, 0.766],
+      u26:[3398,3929,4026,3961,4085,4289,4596,4832,5107,5596,6021,6580],u27:[3398,3512,3599,3541,3652,3834,4109,4319,4565,5002,5382,5882],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.391,0.465,0.525,0.573,0.626],r27:[0.647,0.665,0.68,0.693,0.71,0.728,0.738,0.746,0.752,0.757,0.762,0.766],
       au:5467,
-      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.5,cu27:6.5},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:3.1,cu27:3.1},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumplea\u00f1os":{tu26:0.2,tu27:0.2,cu26:4.7,cu27:4.7}},
-      pts:{tu26:0.5,tu27:0.5,avg26:5.4,avg27:5.4,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0.15,tu27:0.15,cu26:6.5,cu27:6.5},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0.001,tu27:0.001,cu26:3.1,cu27:3.1},"Millas":{tu26:0.14,tu27:0.14,cu26:1.156,cu27:1.156},"Cashback":{tu26:0,tu27:0.0,cu26:3.65,cu27:3.65},"Viaje gratis cumpleaños":{tu26:0.2,tu27:0.2,cu26:4.7,cu27:4.7}},
     },
     Bronce:{
-      u26:[2527, 2911, 3076, 3045, 3180, 3325, 3601, 3782, 3907, 4218, 4501, 4883],u27:[2527, 2673, 2824, 2796, 2920, 3053, 3306, 3472, 3588, 3872, 4133, 4484],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.261, 0.312, 0.355, 0.391, 0.432],r27:[0.448, 0.463, 0.476, 0.488, 0.503, 0.519, 0.529, 0.537, 0.544, 0.55, 0.555, 0.56],
+      u26:[2527,2911,3076,3045,3180,3325,3601,3782,3907,4218,4501,4883],u27:[2527,2673,2824,2796,2920,3053,3306,3472,3588,3872,4133,4484],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.261,0.312,0.355,0.391,0.432],r27:[0.448,0.463,0.476,0.488,0.503,0.519,0.529,0.537,0.544,0.55,0.555,0.56],
       au:4356,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
-      pts:{tu26:0.5,tu27:0.5,avg26:1.3,avg27:1.3,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.1,tu27:0.1,cu26:0.2176,cu27:0.2176},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:1.4,cu27:1.4}},
     },
     Member:{
-      u26:[42988, 45671, 52708, 50491, 53194, 53491, 58096, 55331, 51793, 54977, 58562, 64590],u27:[42988, 48094, 55505, 53170, 56017, 56330, 61179, 58267, 54542, 57894, 61670, 68018],
-      r26:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.16, 0.194, 0.225, 0.252, 0.284],r27:[0.298, 0.311, 0.323, 0.333, 0.347, 0.364, 0.374, 0.383, 0.391, 0.398, 0.405, 0.412],
+      u26:[42988,45671,52708,50491,53194,53491,58096,55331,51793,54977,58562,64590],u27:[42988,48094,55505,53170,56017,56330,61179,58267,54542,57894,61670,68018],
+      r26:[0.0,0.0,0.0,0.0,0.0,0.0,0.12,0.16,0.194,0.225,0.252,0.284],r27:[0.298,0.311,0.323,0.333,0.347,0.364,0.374,0.383,0.391,0.398,0.405,0.412],
       au:127730,
-      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelaci\u00f3n gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumplea\u00f1os":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
-      pts:{tu26:0.5,tu27:0.5,avg26:0.2,avg27:0.2,cpp:0.01},
+      b:{"Bloqueo precio":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Cancelación gratis":{tu26:0,tu27:0.0,cu26:2.3,cu27:2.3},"Extra referral":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Millas":{tu26:0.09,tu27:0.09,cu26:0.204,cu27:0.204},"Cashback":{tu26:0,tu27:0.0,cu26:0,cu27:0.0},"Viaje gratis cumpleaños":{tu26:0.15,tu27:0.15,cu26:0.5,cu27:0.5}},
     },
   },
 };
@@ -435,416 +422,367 @@ const DOS_DIST = {
 const MO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 const CS=["AR","CL","CO","ES","PE","UY"];
 const LV=["Gold","Plata","Bronce","Member"];
-const BKS=["Bloqueo precio","Cancelaci\u00f3n gratis","Extra referral","Millas","Cashback","Viaje gratis cumplea\u00f1os"];
-const VIAJE="Viaje gratis cumplea\u00f1os";
-const BI={"Bloqueo precio":"\uD83D\uDD12","Cancelaci\u00f3n gratis":"\u274C","Extra referral":"\uD83D\uDC65","Millas":"\u2708\uFE0F","Cashback":"\uD83D\uDCB3","Viaje gratis cumplea\u00f1os":"\uD83C\uDF82"};
+const BKS=["Bloqueo precio","Cancelación gratis","Extra referral","Millas","Cashback","Viaje gratis cumpleaños"];
+const VIAJE="Viaje gratis cumpleaños";
+const BI={"Bloqueo precio":"🔒","Cancelación gratis":"❌","Extra referral":"👥","Millas":"✈️","Cashback":"💳","Viaje gratis cumpleaños":"🎂"};
 const CC={AR:"#7145D6",CL:"#EC4899",CO:"#F59E0B",ES:"#10B981",PE:"#3B82F6",UY:"#F97316"};
 const LC={Gold:"#7145D6",Plata:"#A98AEE",Bronce:"#C4A8F5",Member:"#4B4B6B"};
 const BC2=["#EC4899","#F59E0B","#10B981","#7145D6","#3B82F6","#A98AEE"];
+const FX={AR:1100,CL:950,CO:4200,ES:0.93,PE:3.75,UY:42};
+const CUR_SYM={AR:"$",CL:"$",CO:"$",ES:"€",PE:"S/",UY:"$"};
 
-
-const BASE_THR = {
-  AR:{br:4, si:30, go:80},
-  CL:{br:4, si:30, go:75},
-  CO:{br:3, si:30, go:100},
-  ES:{br:3, si:14, go:30},
-  PE:{br:5, si:55, go:160},
-  UY:{br:5, si:40, go:90},
+const GMV_2026={
+  AR:[17493572,19552593,23027167,23379229,23343313,21359176,21359176,21359176,21359176,21359176,21359176,21359176],
+  CL:[6945795,6541009,7280899,8620813,8542458,7586195,7586195,7586195,7586195,7586195,7586195,7586195],
+  CO:[7189673,8765073,9159127,8997787,9026639,8627660,8627660,8627660,8627660,8627660,8627660,8627660],
+  ES:[26819062,25136817,29784327,30143049,34751838,29327019,29327019,29327019,29327019,29327019,29327019,29327019],
+  PE:[9196881,9312983,9312983,9266434,9923767,9402610,9402610,9402610,9402610,9402610,9402610,9402610],
+  UY:[1626166,1855929,2162783,2125816,2298672,2013873,2013873,2013873,2013873,2013873,2013873,2013873],
 };
+const GMV_2025_ANNUAL={AR:288100000,CL:95600000,CO:106000000,ES:376100000,PE:109100000,UY:21600000};
 
-function calcDistCounts(c, thr) {
-  const dd=DOS_DIST[c]; let m=0,br=0,si=0,go=0;
-  for(let i=0;i<dd.dos.length;i++){
-    const d=dd.dos[i],n=dd.cnt[i];
-    if(d>=thr.go)go+=n; else if(d>=thr.si)si+=n; else if(d>=thr.br)br+=n; else m+=n;
-  }
-  return {Member:m,Bronce:br,Plata:si,Gold:go};
+const BASE_THR={AR:{br:40,si:60,go:125},CL:{br:40,si:55,go:110},CO:{br:70,si:100,go:200},ES:{br:15,si:20,go:40},PE:{br:95,si:135,go:260},UY:{br:45,si:60,go:115}};
+
+function calcDistCounts(c,thr){
+  const dd=DOS_DIST[c];let m=0,br=0,si=0,go=0;
+  for(let i=0;i<dd.dos.length;i++){const d=dd.dos[i],n=dd.cnt[i];if(d>=thr.go)go+=n;else if(d>=thr.si)si+=n;else if(d>=thr.br)br+=n;else m+=n;}
+  return{Member:m,Bronce:br,Plata:si,Gold:go};
 }
 
-function getThrScales(c, thr) {
+function getThrScales(c,thr){
   thr=thr||(S.thr?S.thr[c]:BASE_THR[c]);
   const base=calcDistCounts(c,BASE_THR[c]),curr=calcDistCounts(c,thr);
-  return {
-    Gold:  base.Gold  >0?curr.Gold  /base.Gold  :1,
-    Plata: base.Plata >0?curr.Plata /base.Plata :1,
-    Bronce:base.Bronce>0?curr.Bronce/base.Bronce:1,
-    Member:base.Member>0?curr.Member/base.Member:1,
-  };
+  return{Gold:base.Gold>0?curr.Gold/base.Gold:1,Plata:base.Plata>0?curr.Plata/base.Plata:1,Bronce:base.Bronce>0?curr.Bronce/base.Bronce:1,Member:base.Member>0?curr.Member/base.Member:1};
 }
 
-function tThr(){
-  const p=document.getElementById('thr-panel');
-  const on=p.classList.toggle('show');
-  document.getElementById('btn-thr').classList.toggle('on',on);
-  if(on) renderThrPanel();
-}
-
-function uThr(c,k,val){
-  val=parseInt(val)||0; val=Math.max(1,val);
-  const t=S.thr[c];
-  if(k==='br'){t.br=Math.min(val,t.si-1);}
-  else if(k==='si'){t.si=Math.max(val,t.br+1);t.si=Math.min(t.si,t.go-1);}
-  else if(k==='go'){t.go=Math.max(val,t.si+1);}
-  renderThrPanel(); render();
-  if(S.gl)rGlobal();
-}
-
-function resetThresholds(){
-  CS.forEach(c=>S.thr[c]={...BASE_THR[c]});
-  renderThrPanel(); render();
-  if(S.gl)rGlobal();
-}
-
+function tThr(){const p=document.getElementById('thr-panel');const on=p.classList.toggle('show');document.getElementById('btn-thr').classList.toggle('on',on);if(on)renderThrPanel();}
+function uThr(c,k,val){val=parseInt(val)||0;val=Math.max(1,val);const t=S.thr[c];if(k==='br'){t.br=Math.min(val,t.si-1);}else if(k==='si'){t.si=Math.max(val,t.br+1);t.si=Math.min(t.si,t.go-1);}else if(k==='go'){t.go=Math.max(val,t.si+1);}renderThrPanel();render();if(S.gl)rGlobal();}
+function resetThresholds(){CS.forEach(c=>S.thr[c]={...BASE_THR[c]});renderThrPanel();render();if(S.gl)rGlobal();}
 let thrChartI=null;
+
 function renderThrPanel(){
   const c=S.c==='Global'?'AR':S.c;
   document.getElementById('thr-country').textContent=c;
   const t=S.thr[c],base=calcDistCounts(c,BASE_THR[c]),curr=calcDistCounts(c,t);
-  const LVL=[
-    {k:'br',label:'Bronce',color:'#C4A8F5',lvl:'Bronce'},
-    {k:'si',label:'Plata', color:'#A98AEE',lvl:'Plata'},
-    {k:'go',label:'Gold',  color:'#7145D6',lvl:'Gold'},
-  ];
+  const LVL=[{k:'br',label:'Bronce',color:'#C4A8F5',lvl:'Bronce'},{k:'si',label:'Plata',color:'#A98AEE',lvl:'Plata'},{k:'go',label:'Gold',color:'#7145D6',lvl:'Gold'}];
   const fN2=n=>new Intl.NumberFormat('es-ES').format(Math.round(n));
   const fPct=n=>(n>=0?'+':'')+((n)*100).toFixed(1)+'%';
-
-  let html=`<div class="thr-grid">
-    <div class="thr-hdr">Nivel</div>
-    ${LVL.map(x=>`<div class="thr-col">
-      <div class="thr-col-hdr" style="color:${x.color}">${x.label}</div>
-      <div class="thr-num-wrap">
-        <input class="thr-num" type="number" min="1" max="500" value="${t[x.k]}"
-          oninput="uThr('${c}','${x.k}',this.value)"/>
-        <span class="thr-unit">DOs+</span>
-      </div>
-    </div>`).join('')}
-  </div>
-  <div class="thr-users-row">
-    <span style="font-size:9px;color:var(--g3);padding-top:2px">Usuarios</span>
-    ${LVL.map(x=>{
-      const bv=base[x.lvl],cv=curr[x.lvl],d=(cv-bv)/bv;
-      return `<div>
-        <div class="thr-uval">${fN2(cv)}</div>
-        <div class="thr-udelta" style="color:${d>0.005?'var(--grn)':d<-0.005?'var(--red)':'var(--g3)'}">
-          ${Math.abs(d)>0.001?fPct(d):'— base'}
-        </div>
-      </div>`;
-    }).join('')}
-  </div>`;
+  let html=`<div class="thr-grid"><div class="thr-hdr">Nivel</div>${LVL.map(x=>`<div class="thr-col"><div class="thr-col-hdr" style="color:${x.color}">${x.label}</div><div class="thr-num-wrap"><input class="thr-num" type="number" min="1" max="500" value="${t[x.k]}" oninput="uThr('${c}','${x.k}',this.value)"/><span class="thr-unit">DOs+</span></div></div>`).join('')}</div>
+  <div class="thr-users-row"><span style="font-size:9px;color:var(--g3);padding-top:2px">Usuarios</span>${LVL.map(x=>{const bv=base[x.lvl],cv=curr[x.lvl],d=(cv-bv)/bv;return`<div><div class="thr-uval">${fN2(cv)}</div><div class="thr-udelta" style="color:${d>0.005?'var(--grn)':d<-0.005?'var(--red)':'var(--g3)'}">${Math.abs(d)>0.001?fPct(d):'— base'}</div></div>`;}).join('')}</div>`;
   document.getElementById('thr-controls').innerHTML=html;
-
-  // Histogram
-  const canvas=document.getElementById('thr-chart');
-  if(!canvas)return;
+  const canvas=document.getElementById('thr-chart');if(!canvas)return;
   if(thrChartI){thrChartI.destroy();thrChartI=null;}
-  const dd=DOS_DIST[c];
-  const BIN=5, MAX_DOS=Math.min(300, Math.max(t.go+50, 200));
-  const bins=[];
-  for(let b=0;b<MAX_DOS;b+=BIN){
-    let cnt=0;
-    for(let i=0;i<dd.dos.length;i++)if(dd.dos[i]>=b&&dd.dos[i]<b+BIN)cnt+=dd.cnt[i];
-    bins.push({x:b,cnt});
-  }
-  const labels=bins.map(b=>b.x);
-  const colors=bins.map(b=>{
-    const mid=b.x+BIN/2;
-    if(mid>=t.go)return '#7145D6';
-    if(mid>=t.si)return '#A98AEE';
-    if(mid>=t.br)return '#C4A8F5';
-    return '#4B4B6B';
-  });
-  thrChartI=new Chart(canvas,{
-    type:'bar',
-    data:{labels,datasets:[{data:bins.map(b=>b.cnt),backgroundColor:colors,borderWidth:0,borderRadius:1,barPercentage:1,categoryPercentage:1}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>`${i[0].label}–${parseInt(i[0].label)+BIN-1} DOs`,label:c=>`${fN2(c.raw)} usuarios`}}},
-      scales:{
-        x:{ticks:{font:{size:8},color:'#6B7280',maxTicksLimit:12},grid:{display:false}},
-        y:{ticks:{display:false},grid:{display:false},border:{display:false}}
-      }
-    }
-  });
+  const dd=DOS_DIST[c];const BIN=5,MAX_DOS=Math.min(300,Math.max(t.go+50,200));const bins=[];
+  for(let b=0;b<MAX_DOS;b+=BIN){let cnt=0;for(let i=0;i<dd.dos.length;i++)if(dd.dos[i]>=b&&dd.dos[i]<b+BIN)cnt+=dd.cnt[i];bins.push({x:b,cnt});}
+  const labels=bins.map(b=>b.x);const colors=bins.map(b=>{const mid=b.x+BIN/2;if(mid>=t.go)return'#7145D6';if(mid>=t.si)return'#A98AEE';if(mid>=t.br)return'#C4A8F5';return'#4B4B6B';});
+  thrChartI=new Chart(canvas,{type:'bar',data:{labels,datasets:[{data:bins.map(b=>b.cnt),backgroundColor:colors,borderWidth:0,borderRadius:1,barPercentage:1,categoryPercentage:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>`${i[0].label}–${parseInt(i[0].label)+BIN-1} DOs`,label:c=>`${fN2(c.raw)} usuarios`}}},scales:{x:{ticks:{font:{size:8},color:'#6B7280',maxTicksLimit:12},grid:{display:false}},y:{ticks:{display:false},grid:{display:false},border:{display:false}}}}});
 }
 
+// Default benCrit derived dynamically per country from D values (see initState)
+// Bloqueo precio & Extra referral: n = level_cu / plata_cu  → cost = u × tu × plata_cu × n
+// Viaje gratis cumpleaños:         pct = level_cu/gold_cu×100 → cost = au12 × tu × gold_cu × (pct/100)
+// Cashback: always 0
+function makeBenCrit(c){
+  const yk='26';
+  const plataBP=D[c]['Plata'].b['Bloqueo precio']['cu'+yk];
+  const plataER=D[c]['Plata'].b['Extra referral']['cu'+yk];
+  const goldVG=D[c]['Gold'].b[VIAJE]['cu'+yk];
+  const crit={};
+  LV.forEach(l=>{
+    const cuBP=D[c][l].b['Bloqueo precio']['cu'+yk];
+    const cuER=D[c][l].b['Extra referral']['cu'+yk];
+    const cuVG=D[c][l].b[VIAJE]['cu'+yk];
+    crit[l]={
+      'Bloqueo precio':{n: plataBP>0 ? cuBP/plataBP : 0},
+      'Extra referral':{n: plataER>0 ? cuER/plataER : 0},
+      'Cashback':{pct:0},
+      [VIAJE]:{pct: goldVG>0 ? cuVG/goldVG*100 : 0},
+    };
+  });
+  return crit;
+}
 
-// ── STATE ────────────────────────────────────────────────────────────────────
-const S={c:"AR",lv:"ALL",yr:2026,v:"e",gl:false,cmp:false,cmpScen:null,gr:{},ben:{},pts:{},thr:{},benActive:{}};
+// ── STATE ──────────────────────────────────────────────────────────────────────
+const S={c:"AR",lv:"ALL",yr:2026,v:"e",gl:false,cmp:false,cmpScen:null,currency:"USD",gr:{},ben:{},thr:{},benActive:{},benCrit:{},otherInv:{}};
 
 function initState(target){
   CS.forEach(c=>{
-    target.gr[c]={};target.ben[c]={};target.pts[c]={};
-    target.benActive[c]={};
+    target.gr[c]={};target.ben[c]={};target.benActive[c]={};target.benCrit[c]={};target.otherInv[c]=0;
     BKS.forEach(bk=>target.benActive[c][bk]=true);
-    target.benActive[c]['pts']=true;
+    const defCrit=makeBenCrit(c);
     LV.forEach(l=>{
       target.gr[c][l]=1;target.ben[c][l]={};
       BKS.forEach(bk=>{const b=D[c][l].b[bk];target.ben[c][l][bk]={tu26:b.tu26,tu27:b.tu27,cu26:b.cu26,cu27:b.cu27};});
-      const p=D[c][l].pts;target.pts[c][l]={tu26:p.tu26,tu27:p.tu27,avg26:p.avg26,avg27:p.avg27,cpp:p.cpp};
+      target.benCrit[c][l]=JSON.parse(JSON.stringify(defCrit[l]));
     });
     target.thr[c]={...BASE_THR[c]};
   });
 }
 initState(S);
 
-// ── SCENARIOS ────────────────────────────────────────────────────────────────
-const SCENARIOS=[];
-let scenCounter=1;
+// ── SCENARIOS ─────────────────────────────────────────────────────────────────
+const SCENARIOS=[];let scenCounter=1;
 
 function captureState(){
-  return {
-    gr:  JSON.parse(JSON.stringify(S.gr)),
-    ben: JSON.parse(JSON.stringify(S.ben)),
-    pts: JSON.parse(JSON.stringify(S.pts)),
-    thr: JSON.parse(JSON.stringify(S.thr)),
-    benActive: JSON.parse(JSON.stringify(S.benActive)),
-  };
+  return{gr:JSON.parse(JSON.stringify(S.gr)),ben:JSON.parse(JSON.stringify(S.ben)),thr:JSON.parse(JSON.stringify(S.thr)),benActive:JSON.parse(JSON.stringify(S.benActive)),benCrit:JSON.parse(JSON.stringify(S.benCrit)),otherInv:JSON.parse(JSON.stringify(S.otherInv))};
 }
-
 function applyState(snap){
-  S.gr  = JSON.parse(JSON.stringify(snap.gr));
-  S.ben = JSON.parse(JSON.stringify(snap.ben));
-  S.pts = JSON.parse(JSON.stringify(snap.pts));
-  S.thr = snap.thr ? JSON.parse(JSON.stringify(snap.thr)) : {};
-  S.benActive = snap.benActive ? JSON.parse(JSON.stringify(snap.benActive)) : {};
+  S.gr=JSON.parse(JSON.stringify(snap.gr));S.ben=JSON.parse(JSON.stringify(snap.ben));
+  S.thr=snap.thr?JSON.parse(JSON.stringify(snap.thr)):{};
+  S.benActive=snap.benActive?JSON.parse(JSON.stringify(snap.benActive)):{};
+  S.benCrit=snap.benCrit?JSON.parse(JSON.stringify(snap.benCrit)):{};
+  S.otherInv=snap.otherInv?JSON.parse(JSON.stringify(snap.otherInv)):{};
   CS.forEach(c=>{
     if(!S.thr[c])S.thr[c]={...BASE_THR[c]};
-    if(!S.benActive[c]){S.benActive[c]={};BKS.forEach(bk=>S.benActive[c][bk]=true);S.benActive[c]['pts']=true;}
+    if(!S.benActive[c]){S.benActive[c]={};BKS.forEach(bk=>S.benActive[c][bk]=true);}
+    if(!S.benCrit[c])S.benCrit[c]={};
+    if(S.otherInv[c]===undefined)S.otherInv[c]=0;
+    LV.forEach(l=>{
+      if(!S.benCrit[c][l]){S.benCrit[c][l]=JSON.parse(JSON.stringify(makeBenCrit(c)[l]));}
+    });
   });
 }
 
-function uBenActive(c,bk){
-  S.benActive[c][bk]=!S.benActive[c][bk];
+function uBenActive(c,bk){S.benActive[c][bk]=!S.benActive[c][bk];render();if(S.gl)rGlobal();}
+function uBenCrit(c,l,bk,field,val){
+  const v=parseFloat(val)||0;
+  if(!S.benCrit[c][l][bk])S.benCrit[c][l][bk]={};
+  S.benCrit[c][l][bk][field]=v;
   render();
-  if(S.gl)rGlobal();
 }
+function uOtherInv(c,val){S.otherInv[c]=parseFloat(val)||0;render();if(S.gl)rGlobal();}
+function setCur(cur){S.currency=cur;document.getElementById('cur-usd').classList.toggle('a',cur==='USD');document.getElementById('cur-lcy').classList.toggle('a',cur==='LCY');render();if(S.gl)rGlobal();}
 
-function renderBenActive(c){
+function renderBenActive(c,lv){
   const ba=S.benActive[c];
-  const allBens=[...BKS.map(bk=>({k:bk,label:BI[bk]+' '+bk})),{k:'pts',label:'🎯 Puntos'}];
+  const ia=lv==='ALL';
   document.getElementById('bat').textContent='Beneficios activos · '+c;
-  document.getElementById('bac').innerHTML=`
-    <div style="font-size:9px;color:var(--g3);margin-bottom:8px">Haz clic para activar/desactivar en el cálculo</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${allBens.map(x=>{
-        const on=ba[x.k]!==false;
-        return `<button onclick="uBenActive('${c}','${x.k}')"
-          style="padding:5px 10px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};
-          background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};
-          font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;
-          text-decoration:${on?'none':'line-through'}">${x.label}</button>`;
-      }).join('')}
-    </div>`;
+  if(ia){
+    // ALL view: just toggle chips
+    document.getElementById('bac').innerHTML=`
+      <div style="font-size:9px;color:var(--g3);margin-bottom:8px">Haz clic para activar/desactivar en el cálculo</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${BKS.map(bk=>{const on=ba[bk]!==false;return`<button onclick="uBenActive('${c}','${bk}')" style="padding:5px 10px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};font-size:10px;font-weight:700;cursor:pointer;text-decoration:${on?'none':'line-through'}">${BI[bk]} ${bk}</button>`;}).join('')}
+      </div>`;
+  } else {
+    // single level: show criteria
+    const l=lv;
+    let rows=BKS.map(bk=>{
+      const on=ba[bk]!==false;
+      const chip=`<button onclick="uBenActive('${c}','${bk}')" style="padding:4px 8px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};font-size:10px;font-weight:700;cursor:pointer;text-decoration:${on?'none':'line-through'};white-space:nowrap">${BI[bk]} ${bk}</button>`;
+      let crit='';
+      if(bk==='Bloqueo precio'){
+        const n=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].n:0;
+        crit=`<input class="ben-crit-input" type="number" min="0" step="1" value="${n}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">bloqueos/usuario</span>`;
+      } else if(bk==='Extra referral'){
+        const n=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].n:0;
+        crit=`<input class="ben-crit-input" type="number" min="0" step="1" value="${n}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">referrals/usuario</span>`;
+      } else if(bk==='Cashback'){
+        const pct=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].pct:0;
+        crit=`<input class="ben-crit-input" type="number" disabled placeholder="-" value="${pct}" style="background:#F3F4F6;color:#9CA3AF"/><span class="ben-crit-label">% cashback (pendiente GMV)</span>`;
+      } else if(bk===VIAJE){
+        const pct=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].pct:100;
+        crit=`<input class="ben-crit-input" type="number" min="0" max="100" step="5" value="${pct}" onchange="uBenCrit('${c}','${l}','${bk}','pct',this.value)"/><span class="ben-crit-label">% viaje cubierto</span>`;
+      }
+      return`<div class="ben-crit-row">${chip}${crit}</div>`;
+    }).join('');
+    document.getElementById('bac').innerHTML=`<div style="font-size:9px;color:var(--g3);margin-bottom:6px">Togglea y ajusta criterios por beneficio</div>${rows}`;
+  }
 }
 
 function saveScenario(name){
-  const snap = captureState();
-  const ebitda = calcGlobalEBITDA();
-  SCENARIOS.push({id:scenCounter++, name, snap, ebitda});
-  renderScenBar();
+  const snap=captureState();const inv=calcGlobalInv();SCENARIOS.push({id:scenCounter++,name,snap,inv});renderScenBar();
 }
-
-function loadScenario(id){
-  const sc = SCENARIOS.find(s=>s.id===id);
-  if(!sc) return;
-  applyState(sc.snap);
-  render(); renderScenBar();
-  if(document.getElementById('thr-panel').classList.contains('show')) renderThrPanel();
-}
-
-function deleteScenario(id){
-  const idx = SCENARIOS.findIndex(s=>s.id===id);
-  if(idx>=0) SCENARIOS.splice(idx,1);
-  if(S.cmpScen===id) S.cmpScen=null;
-  renderScenBar();
-}
-
-function resetBase(){
-  initState(S);
-  render(); renderScenBar(); renderBenActive(S.c);
-  if(document.getElementById('thr-panel').classList.contains('show')) renderThrPanel();
-  const t=document.getElementById("reset-toast");
-  t.style.display="block";
-  setTimeout(()=>t.style.display="none",2500);
-}
+function loadScenario(id){const sc=SCENARIOS.find(s=>s.id===id);if(!sc)return;applyState(sc.snap);render();renderScenBar();if(document.getElementById('thr-panel').classList.contains('show'))renderThrPanel();}
+function deleteScenario(id){const idx=SCENARIOS.findIndex(s=>s.id===id);if(idx>=0)SCENARIOS.splice(idx,1);if(S.cmpScen===id)S.cmpScen=null;renderScenBar();}
+function resetBase(){initState(S);render();renderScenBar();renderBenActive(S.c,S.lv);if(document.getElementById('thr-panel').classList.contains('show'))renderThrPanel();const t=document.getElementById("reset-toast");t.style.display="block";setTimeout(()=>t.style.display="none",2500);}
 
 function renderScenBar(){
   const container=document.getElementById("scen-tags");
-  if(SCENARIOS.length===0){
-    container.innerHTML=`<span style="font-size:10px;color:var(--g4)">Sin escenarios guardados &mdash; ajusta par&aacute;metros y guarda</span>`;
-    return;
-  }
+  if(SCENARIOS.length===0){container.innerHTML=`<span style="font-size:10px;color:var(--g4)">Sin escenarios guardados &mdash; ajusta parámetros y guarda</span>`;return;}
   container.innerHTML=SCENARIOS.map(sc=>{
-    const isActive=S.cmpScen===sc.id;
-    const e=sc.ebitda;
-    return `<div class="scen-tag ${isActive?"active":""}" onclick="loadScenario(${sc.id})">
-      <span class="scen-name">${sc.name}</span>
-      <span class="scen-ebitda" style="color:${e<0?"var(--red)":"var(--grn)"}">
-        ${e<0?"-\u20AC"+faN(-e):"\u20AC"+faN(e)}
-      </span>
-      <button class="scen-del" onclick="event.stopPropagation();deleteScenario(${sc.id})" title="Eliminar">&times;</button>
-    </div>`;
+    const isActive=S.cmpScen===sc.id;const inv=sc.inv;
+    return`<div class="scen-tag ${isActive?"active":""}" onclick="loadScenario(${sc.id})"><span class="scen-name">${sc.name}</span><span class="scen-inv">$${faN(inv)}</span><button class="scen-del" onclick="event.stopPropagation();deleteScenario(${sc.id})" title="Eliminar">&times;</button></div>`;
   }).join("");
 }
 
-// ── MODAL ────────────────────────────────────────────────────────────────────
-function openSaveModal(){
-  document.getElementById("scen-name-input").value="Escenario "+scenCounter;
-  document.getElementById("modal-overlay").classList.add("show");
-  document.getElementById("scen-name-input").focus();
-  document.getElementById("scen-name-input").select();
-}
-function closeModal(){ document.getElementById("modal-overlay").classList.remove("show"); }
-function confirmSave(){
-  const name=document.getElementById("scen-name-input").value.trim()||"Escenario "+scenCounter;
-  saveScenario(name);
-  closeModal();
-}
-document.addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&document.getElementById("modal-overlay").classList.contains("show")) confirmSave();
-  if(e.key==="Escape"&&document.getElementById("modal-overlay").classList.contains("show")) closeModal();
-});
+function openSaveModal(){document.getElementById("scen-name-input").value="Escenario "+scenCounter;document.getElementById("modal-overlay").classList.add("show");document.getElementById("scen-name-input").focus();document.getElementById("scen-name-input").select();}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("show");}
+function confirmSave(){const name=document.getElementById("scen-name-input").value.trim()||"Escenario "+scenCounter;saveScenario(name);closeModal();}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&document.getElementById("modal-overlay").classList.contains("show"))confirmSave();if(e.key==="Escape"&&document.getElementById("modal-overlay").classList.contains("show"))closeModal();});
 
-// ── COMPARE VIEW ─────────────────────────────────────────────────────────────
-function tCompare(){
-  S.cmp=!S.cmp;
-  document.getElementById("btn-compare").classList.toggle("on",S.cmp);
-  if(S.cmp){ sMC();renderCompare(); }
-  else{ sM();render(); }
-}
+function tCompare(){S.cmp=!S.cmp;document.getElementById("btn-compare").classList.toggle("on",S.cmp);if(S.cmp){sMC();renderCompare();}else{sM();render();}}
 
 function renderCompare(){
   const grid=document.getElementById("cmp-grid");
-  if(SCENARIOS.length===0){
-    grid.innerHTML=`<div class="cmp-card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--g3)">
-      Guarda al menos un escenario para comparar. Ajusta par&aacute;metros y pulsa <b>Guardar escenario</b>.
-    </div>`;
-    return;
-  }
-  if(!S.cmpScen && SCENARIOS.length>0) S.cmpScen=SCENARIOS[0].id;
+  if(SCENARIOS.length===0){grid.innerHTML=`<div class="cmp-card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--g3)">Guarda al menos un escenario para comparar.</div>`;return;}
+  if(!S.cmpScen&&SCENARIOS.length>0)S.cmpScen=SCENARIOS[0].id;
   const scRight=SCENARIOS.find(s=>s.id===S.cmpScen);
-  const yr=S.yr, c=S.c, lv=S.lv;
-  const curPL  = lv==="ALL"?calcALL(c,yr,S):calcLv(c,lv,yr,S);
-  const tmpS={...S,gr:scRight.snap.gr,ben:scRight.snap.ben,pts:scRight.snap.pts,thr:scRight.snap.thr||S.thr};
-  const cmpPL  = lv==="ALL"?calcALL(c,yr,tmpS):calcLv(c,lv,yr,tmpS);
-  const curE = curPL.reduce((s,r)=>s+r.ebitda,0);
-  const cmpE = cmpPL.reduce((s,r)=>s+r.ebitda,0);
-  const diff = curE - cmpE;
+  const yr=S.yr,c=S.c,lv=S.lv;
+  const curPL=lv==="ALL"?calcALL(c,yr,S):calcLv(c,lv,yr,S);
+  const tmpS={...S,gr:scRight.snap.gr,ben:scRight.snap.ben,thr:scRight.snap.thr||S.thr,benCrit:scRight.snap.benCrit||S.benCrit,otherInv:scRight.snap.otherInv||S.otherInv};
+  const cmpPL=lv==="ALL"?calcALL(c,yr,tmpS):calcLv(c,lv,yr,tmpS);
+  const curI=curPL.reduce((s,r)=>s+r.costes,0);
+  const cmpI=cmpPL.reduce((s,r)=>s+r.costes,0);
+  const diff=cmpI-curI;
   const selOpts=SCENARIOS.map(sc=>`<option value="${sc.id}" ${sc.id===S.cmpScen?"selected":""}>${sc.name}</option>`).join("");
   grid.innerHTML=`
     <div class="cmp-card">
-      <div class="cmp-head">
-        <span>Estado actual</span>
-        <span style="font-size:20px;font-weight:800;color:${curE<0?"var(--red)":"var(--grn)"}">${fE(curE)}</span>
-      </div>
-      ${renderCmpTable(curPL,yr)}
+      <div class="cmp-head"><span>Estado actual</span><span style="font-size:20px;font-weight:800;color:var(--blk)">${fM(curI,c)}</span></div>
+      ${renderCmpTable(curPL,yr,c)}
     </div>
     <div class="cmp-card">
       <div class="cmp-head">
         <div style="display:flex;flex-direction:column;gap:4px">
           <select onchange="S.cmpScen=parseInt(this.value);renderCompare()" style="font-size:11px;font-weight:700;border:1.5px solid var(--m10);border-radius:7px;padding:4px 8px;background:var(--m0);color:var(--blk);outline:none">${selOpts}</select>
-          <span style="font-size:9px;color:var(--g3)">vs actual: <span style="font-weight:800;color:${diff>0?"var(--grn)":diff<0?"var(--red)":"var(--g3)"}">${diff>0?"+":diff<0?"-":"\u00B1"}\u20AC${faN(Math.abs(diff))}</span></span>
+          <span style="font-size:9px;color:var(--g3)">vs actual: <span style="font-weight:800;color:${diff<0?'var(--grn)':diff>0?'var(--red)':'var(--g3)'}">${diff<=0?'-':'+'}${fM(Math.abs(diff),c)}</span></span>
         </div>
-        <span style="font-size:20px;font-weight:800;color:${cmpE<0?"var(--red)":"var(--grn)"}">${fE(cmpE)}</span>
+        <span style="font-size:20px;font-weight:800;color:var(--blk)">${fM(cmpI,c)}</span>
       </div>
-      ${renderCmpTable(cmpPL,yr)}
+      ${renderCmpTable(cmpPL,yr,c)}
     </div>`;
 }
 
-function renderCmpTable(pl, yr){
-  const rows=[
-    {l:"Usuarios", k:"users",  f:v=>fN(v),              col:"var(--blk)"},
-    {l:"Costes",   k:"costes", f:v=>"-\u20AC"+fN(v),    col:"var(--red)"},
-    {l:"EBITDA",   k:"ebitda", f:v=>v<0?"-\u20AC"+fN(-v):"\u20AC"+fN(v), col:"var(--m60)",bold:true},
-  ];
-  return `<div style="overflow:hidden;border-radius:9px;border:1px solid var(--g2)">
-    <div style="background:var(--blk);padding:6px 10px;display:grid;grid-template-columns:52px repeat(12,1fr)">
+function renderCmpTable(pl,yr,c){
+  // Collect active benefit keys
+  const activeBKS=BKS.filter(bk=>pl.some(r=>r[bk]>0));
+  const hasOther=pl.some(r=>(r.otherInv||0)>0);
+  return`<div style="overflow:hidden;border-radius:9px;border:1px solid var(--g2)">
+    <div style="background:var(--blk);padding:6px 10px;display:grid;grid-template-columns:72px repeat(12,1fr)">
       <span style="font-size:8px;font-weight:700;color:var(--g4)">MES</span>
       ${MO.map(m=>`<span style="font-size:8px;font-weight:700;color:var(--g4);text-align:right">${m}</span>`).join("")}
     </div>
-    ${rows.map((row,ri)=>`
-      <div style="padding:5px 10px;display:grid;grid-template-columns:52px repeat(12,1fr);background:${ri%2===0?"white":"var(--g1)"};border-top:1px solid var(--g2)">
-        <span style="font-size:8px;font-weight:700;color:var(--g4)">${row.l}</span>
-        ${pl.map(r=>{const v=r[row.k],cl=row.k==="ebitda"&&v<0?"var(--red)":row.col;
-          return `<span style="font-size:8px;text-align:right;font-family:monospace;color:${cl};font-weight:${row.bold?700:400}">${row.f(v)}</span>`;}).join("")}
-      </div>`).join("")}
-    <div style="padding:6px 10px;background:var(--m10);display:grid;grid-template-columns:52px repeat(12,1fr);border-top:2px solid var(--m60)">
-      <span style="font-size:8px;font-weight:800;color:var(--m60)">TOTAL</span>
-      ${pl.map(r=>`<span style="font-size:8px;text-align:right;font-family:monospace;font-weight:800;color:${r.ebitda<0?"var(--red)":"var(--grn)"}">${r.ebitda<0?"-\u20AC"+fN(-r.ebitda):"\u20AC"+fN(r.ebitda)}</span>`).join("")}
+    <div style="padding:5px 10px;display:grid;grid-template-columns:72px repeat(12,1fr);background:white;border-top:1px solid var(--g2)">
+      <span style="font-size:8px;font-weight:700;color:var(--g4)">Usuarios</span>
+      ${pl.map(r=>`<span style="font-size:8px;text-align:right;font-family:monospace">${fN(r.users)}</span>`).join("")}
+    </div>
+    ${activeBKS.map((bk,i)=>`
+    <div style="padding:5px 10px;display:grid;grid-template-columns:72px repeat(12,1fr);background:${i%2===0?'var(--g1)':'white'};border-top:1px solid var(--g2)">
+      <span style="font-size:8px;font-weight:700;color:var(--g4)">${BI[bk]}</span>
+      ${pl.map(r=>`<span style="font-size:8px;text-align:right;font-family:monospace;color:var(--blk)">${r[bk]>0?fM(r[bk],c):'—'}</span>`).join("")}
+    </div>`).join("")}
+    ${hasOther?`<div style="padding:5px 10px;display:grid;grid-template-columns:72px repeat(12,1fr);background:var(--g1);border-top:1px solid var(--g2)">
+      <span style="font-size:8px;font-weight:700;color:var(--g4)">Otras inv.</span>
+      ${pl.map(r=>`<span style="font-size:8px;text-align:right;font-family:monospace;color:var(--blk)">${(r.otherInv||0)>0?fM(r.otherInv,c):'—'}</span>`).join("")}
+    </div>`:''}
+    <div style="padding:6px 10px;background:var(--m10);display:grid;grid-template-columns:72px repeat(12,1fr);border-top:2px solid var(--m60)">
+      <span style="font-size:8px;font-weight:800;color:var(--m60)">Total Inv.</span>
+      ${pl.map(r=>`<span style="font-size:8px;text-align:right;font-family:monospace;font-weight:800;color:var(--blk)">${fM(r.costes,c)}</span>`).join("")}
     </div>
   </div>`;
 }
 
-// ── CALC ─────────────────────────────────────────────────────────────────────
+// ── CALC ──────────────────────────────────────────────────────────────────────
 function calcLv(c,l,yr,st){
   st=st||S;
   const us=yr===2026?D[c][l].u26:D[c][l].u27;
   const reg=yr===2026?D[c][l].r26:D[c][l].r27;
-  const ben=st.ben[c][l],pts=st.pts[c][l],m=st.gr[c][l],y6=yr===2026;
+  const ben=st.ben[c][l],m=st.gr[c][l],y6=yr===2026;
   const au12=D[c][l].au/12;
   const thr=st.thr?st.thr[c]:BASE_THR[c];
   const tsc=getThrScales(c,thr)[l];
   const ba=st.benActive?st.benActive[c]:{};
+  const bc=st.benCrit&&st.benCrit[c]&&st.benCrit[c][l]?st.benCrit[c][l]:{};
   return MO.map((_,i)=>{
     const u=us[i]*m*tsc,on=y6?i>=6:true,yk=yr===2026?"26":"27";
     const row={users:Math.round(u),regRate:reg[i]};
     let tot=0;
     BKS.forEach(bk=>{
       const active=ba[bk]!==false;
-      const tu=(on&&active)?ben[bk]["tu"+yk]:0,cu=ben[bk]["cu"+yk];
-      const base=bk===VIAJE?au12*tsc:u;
-      const cost=Math.round(base*tu*cu);
+      if(!on||!active){row[bk]=0;return;}
+      const tu=ben[bk]["tu"+yk],cu=ben[bk]["cu"+yk];
+      let cost=0;
+      if(bk==='Cashback'){
+        cost=0;
+      } else if(bk===VIAJE){
+        // base = Gold's cu (100% trip); pct scales from there
+        const goldCu=D[c]['Gold'].b[VIAJE]['cu'+yk];
+        const pct=(bc[bk]&&bc[bk].pct!==undefined)?bc[bk].pct/100:cu/(goldCu||1);
+        cost=Math.round(au12*tsc*tu*goldCu*pct);
+      } else if(bk==='Bloqueo precio'){
+        // base = Plata's cu (1 unit); n = number of units
+        const plataCu=D[c]['Plata'].b[bk]['cu'+yk];
+        const n=(bc[bk]&&bc[bk].n!==undefined)?bc[bk].n:0;
+        cost=Math.round(u*tu*plataCu*n);
+      } else if(bk==='Extra referral'){
+        // base = Plata's cu (1 referral); n = number of referrals
+        const plataCu=D[c]['Plata'].b[bk]['cu'+yk];
+        const n=(bc[bk]&&bc[bk].n!==undefined)?bc[bk].n:0;
+        cost=Math.round(u*tu*plataCu*n);
+      } else {
+        cost=Math.round(u*tu*cu);
+      }
       row[bk]=cost;tot+=cost;
     });
-    const ptc=(on&&(ba['pts']!==false))?Math.round(u*pts["tu"+yk]*pts["avg"+yk]*pts.cpp):0;
-    row.pts=ptc;tot+=ptc;row.costes=tot;row.ebitda=-tot;return row;
+    row.costes=tot;row.inv=tot;return row;
   });
 }
 
 function calcALL(c,yr,st){
   st=st||S;
   const bL={};LV.forEach(l=>bL[l]=calcLv(c,l,yr,st));
+  const oi=(st.otherInv&&st.otherInv[c])||0;
   return MO.map((_,i)=>{
-    const r={users:0,regRate:0,costes:0,ebitda:0,pts:0};
+    const r={users:0,regRate:0,costes:0,inv:0,otherInv:oi};
     BKS.forEach(bk=>r[bk]=0);let wR=0;
-    LV.forEach(l=>{const x=bL[l][i];
-      r.users+=x.users;r.costes+=x.costes;r.ebitda+=x.ebitda;r.pts+=x.pts;
-      wR+=x.regRate*x.users;BKS.forEach(bk=>r[bk]+=x[bk]);});
+    LV.forEach(l=>{const x=bL[l][i];r.users+=x.users;r.costes+=x.costes;r.inv+=x.costes;wR+=x.regRate*x.users;BKS.forEach(bk=>r[bk]+=x[bk]);});
+    r.costes+=oi;r.inv+=oi;
     r.regRate=r.users>0?wR/r.users:0;return r;
   });
 }
 
-function getCur(){ return S.lv==="ALL"?calcALL(S.c,S.yr):calcLv(S.c,S.lv,S.yr); }
-function allPL(c,yr){ const o={};LV.forEach(l=>o[l]=calcLv(c,l,yr));o.ALL=calcALL(c,yr);return o; }
-function calcGlobalEBITDA(){ return CS.reduce((s,c)=>s+calcALL(c,S.yr).reduce((ss,r)=>ss+r.ebitda,0),0); }
+function getCur(){return S.lv==="ALL"?calcALL(S.c,S.yr):calcLv(S.c,S.lv,S.yr);}
+function allPL(c,yr){const o={};LV.forEach(l=>o[l]=calcLv(c,l,yr));o.ALL=calcALL(c,yr);return o;}
+function calcGlobalInv(){return CS.reduce((s,c)=>s+calcALL(c,S.yr).reduce((ss,r)=>ss+r.costes,0),0);}
 
-// ── FORMAT ───────────────────────────────────────────────────────────────────
+// ── FORMAT ────────────────────────────────────────────────────────────────────
 const fa=n=>{const a=Math.abs(n);return a>=1e6?(a/1e6).toFixed(2)+"M":a>=1e3?(a/1e3).toFixed(1)+"k":Math.round(a).toString();};
 const faN=n=>new Intl.NumberFormat("es-ES").format(Math.round(Math.abs(n)));
-const fE=n=>(n<0?"-":"")+"\u20AC"+fa(n);
 const fP=n=>(n*100).toFixed(1)+"%";
 const fN=n=>new Intl.NumberFormat("es-ES").format(Math.round(n));
 
-// ── CHARTS ───────────────────────────────────────────────────────────────────
+// fM: money formatted respecting currency toggle. c = country code
+function fM(v,ctry){
+  ctry=ctry||S.c;
+  if(S.currency==='LCY'&&ctry&&FX[ctry]){
+    const lcy=v*FX[ctry];const sym=CUR_SYM[ctry];
+    const a=Math.abs(lcy);let str;
+    if(a>=1e9)str=(a/1e9).toFixed(1)+"B";
+    else if(a>=1e6)str=(a/1e6).toFixed(1)+"M";
+    else if(a>=1e3)str=(a/1e3).toFixed(0)+"k";
+    else str=Math.round(a).toString();
+    return sym+str;
+  }
+  return "$"+fa(v);
+}
+
+function fMFull(v,ctry){
+  ctry=ctry||S.c;
+  if(S.currency==='LCY'&&ctry&&FX[ctry]){
+    const lcy=v*FX[ctry];const sym=CUR_SYM[ctry];
+    return sym+new Intl.NumberFormat("es-ES").format(Math.round(Math.abs(lcy)));
+  }
+  return "$"+faN(v);
+}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
 let mCI=null,gCI=null;
 function rChart(){
   const ctx=document.getElementById("mc");if(!ctx)return;
   if(mCI){mCI.destroy();mCI=null;}
   const c2=getCur(),ia=S.lv==="ALL",lc=ia?"#1B1B25":(LC[S.lv]||"#7145D6");
   const opt={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10}}}},
-    scales:{x:{ticks:{font:{size:10}},grid:{color:"#F3F0FF"}},y:{ticks:{font:{size:10},callback:v=>"\u20AC"+fa(v)},grid:{color:"#F3F0FF"}}}};
+    scales:{x:{ticks:{font:{size:10}},grid:{color:"#F3F0FF"}},y:{ticks:{font:{size:10},callback:v=>fM(v,S.c)},grid:{color:"#F3F0FF"}}}};
   let cfg;
   if(S.v==="s"){
     const pl=allPL(S.c,S.yr);
-    cfg={type:"bar",data:{labels:MO,datasets:LV.map((l,i)=>({label:l,data:MO.map((_,i)=>pl[l][i].ebitda),backgroundColor:LC[l],stack:"s",borderRadius:i===0?4:0}))},options:opt};
+    cfg={type:"bar",data:{labels:MO,datasets:LV.map((l,i)=>({label:l,data:MO.map((_,i)=>pl[l][i].costes),backgroundColor:LC[l],stack:"s",borderRadius:i===0?4:0}))},options:opt};
   }else if(S.v==="c"){
-    cfg={type:"bar",data:{labels:MO,datasets:[
-      ...BKS.map((bk,i)=>({label:BI[bk]+" "+bk,data:c2.map(r=>r[bk]),backgroundColor:BC2[i],stack:"s",borderRadius:0})),
-      {label:"\uD83C\uDFAF Puntos",data:c2.map(r=>r.pts),backgroundColor:"#1B1B25",stack:"s",borderRadius:4}
-    ]},options:opt};
+    cfg={type:"bar",data:{labels:MO,datasets:BKS.map((bk,i)=>({label:BI[bk]+" "+bk,data:c2.map(r=>r[bk]),backgroundColor:BC2[i],stack:"s",borderRadius:0}))},options:opt};
   }else{
     cfg={type:"line",data:{labels:MO,datasets:[
-      {label:"EBITDA",data:c2.map(r=>r.ebitda),borderColor:lc,backgroundColor:lc+"22",borderWidth:2.5,pointRadius:3,tension:0.3,fill:false},
-      {label:"Costes",data:c2.map(r=>-r.costes),borderColor:"#EF4444",borderDash:[4,2],borderWidth:1.5,pointRadius:2,tension:0.3,fill:false}
+      {label:"Inversión",data:c2.map(r=>r.costes),borderColor:lc,backgroundColor:lc+"22",borderWidth:2.5,pointRadius:3,tension:0.3,fill:false},
+      {label:"Costes",data:c2.map(r=>r.costes),borderColor:"#EF4444",borderDash:[4,2],borderWidth:1.5,pointRadius:2,tension:0.3,fill:false}
     ]},options:opt};
   }
   mCI=new Chart(ctx,cfg);
@@ -854,190 +792,210 @@ function rGChart(){
   const ctx=document.getElementById("gc");if(!ctx)return;
   if(gCI){gCI.destroy();gCI=null;}
   gCI=new Chart(ctx,{type:"line",data:{labels:MO,datasets:CS.map(c=>({label:c,
-    data:MO.map((_,i)=>calcALL(c,S.yr)[i].ebitda),
+    data:MO.map((_,i)=>calcALL(c,S.yr)[i].costes),
     borderColor:CC[c],backgroundColor:CC[c]+"22",borderWidth:2,pointRadius:2,tension:0.3,fill:false}))},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{x:{ticks:{font:{size:10}},grid:{color:"#F3F0FF"}},y:{ticks:{font:{size:10},callback:v=>"\u20AC"+fa(v)},grid:{color:"#F3F0FF"}}}}});
+      scales:{x:{ticks:{font:{size:10}},grid:{color:"#F3F0FF"}},y:{ticks:{font:{size:10},callback:v=>"$"+fa(v)},grid:{color:"#F3F0FF"}}}}});
 }
 
-// ── RENDER ───────────────────────────────────────────────────────────────────
+// ── RENDER ────────────────────────────────────────────────────────────────────
 function render(){
   const c=S.c,lv=S.lv,yr=S.yr,ia=lv==="ALL",c2=getCur();
-  const tE=c2.reduce((s,r)=>s+r.ebitda,0),tC=c2.reduce((s,r)=>s+r.costes,0);
-  const aU=c2.reduce((s,r)=>s+r.users,0)/12,ge=calcGlobalEBITDA();
+  const tI=c2.reduce((s,r)=>s+r.costes,0);
+  const aU=c2.reduce((s,r)=>s+r.users,0)/12,gi=calcGlobalInv();
+  const gmvRef=GMV_2025_ANNUAL[c]||1;
+  const gmvPct=(tI/gmvRef*100).toFixed(2)+"%";
 
-  document.getElementById("k0").className="kpi"+(ia?" dk":"")+(tE<0&&!ia?" ng":"");
-  document.getElementById("kl0").textContent="EBITDA \u00B7 "+c+" "+lv;
-  const ev=document.getElementById("kv0");ev.textContent=fE(tE);
-  ev.style.color=ia?"white":(tE<0?"var(--red)":"var(--m60)");
-  document.getElementById("kv1").textContent=fE(-tC);
-  document.getElementById("ks1").textContent=yr+" \u00B7 "+c+" \u00B7 "+lv;
+  document.getElementById("k0").className="kpi"+(ia?" dk":"");
+  document.getElementById("kl0").textContent="Inversión · "+c+" "+lv;
+  const ev=document.getElementById("kv0");ev.textContent=fM(tI,c);ev.style.color=ia?"white":"var(--blk)";
+  document.getElementById("kv1").textContent=gmvPct;
+  document.getElementById("kv1").style.color="var(--blk)";
+  document.getElementById("ks1").textContent="vs GMV 2025 · "+c+" · "+yr;
   document.getElementById("kv2").textContent=fN(aU);
-  document.getElementById("ks2").textContent=c+" \u00B7 "+lv+" \u00B7 mensual "+yr;
+  document.getElementById("ks2").textContent=c+" · "+lv+" · mensual "+yr;
   document.getElementById("ks0").textContent="Anual "+yr;
-  const gv=document.getElementById("kv3");gv.textContent=fE(ge);gv.style.color=ge<0?"var(--red)":"var(--amb)";
-  document.getElementById("cht").textContent=c+" \u00B7 "+lv+" \u00B7 "+yr;
+  const gv=document.getElementById("kv3");gv.textContent=fM(gi,'AR');gv.style.color="var(--amb)";
+  document.getElementById("cht").textContent=c+" · "+lv+" · "+yr;
 
-  document.getElementById("ut").textContent="Usuarios \u00B7 "+c+" "+(ia?"todos los niveles":lv);
+  document.getElementById("ut").textContent="Usuarios · "+c+" "+(ia?"todos los niveles":lv);
   const uc=document.getElementById("uc");
+  // Monthly avg users per level from calc
+  const avgByLv={};LV.forEach(l=>{const pl=calcLv(c,l,yr);avgByLv[l]=Math.round(pl.reduce((s,r)=>s+r.users,0)/12);});
   if(ia){
     const base=calcDistCounts(c,BASE_THR[c]),curr=calcDistCounts(c,S.thr[c]),t=S.thr[c];
+    const totalU=curr.Member+curr.Bronce+curr.Plata+curr.Gold;
     const lvlMap=[{k:'br',lv:'Bronce',col:'#C4A8F5'},{k:'si',lv:'Plata',col:'#A98AEE'},{k:'go',lv:'Gold',col:'#7145D6'}];
-    const fDelta=lv=>{const d=(curr[lv]-base[lv])/Math.max(base[lv],1);return Math.abs(d)<0.005?'<span style="color:var(--g3)">\u2014 base</span>':`<span style="color:${d>0?'var(--grn)':'var(--red)'}">${d>0?'+':''}${(d*100).toFixed(1)}%</span>`;};
-    let tbl=`<div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">M&iacute;n. DOs anuales por nivel</div>
+    const fDelta=lv=>{const d=(curr[lv]-base[lv])/Math.max(base[lv],1);return Math.abs(d)<0.005?'<span style="color:var(--g3)">— base</span>':`<span style="color:${d>0?'var(--grn)':'var(--red)'}">${d>0?'+':''}${(d*100).toFixed(1)}%</span>`;};
+    const pctOf=lv=>(totalU>0?(curr[lv]/totalU*100).toFixed(1)+'%':'—');
+    let tbl=`<div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Mín. DOs anuales por nivel</div>
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>
           <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:left;padding:3px 0">Nivel</th>
           <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:center;padding:3px 4px">Min DOs</th>
-          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0">Usuarios</th>
-          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0 3px 8px">&Delta; base</th>
+          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0">Usu/mes</th>
+          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 4px">Dist.</th>
+          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0 3px 4px">% total</th>
         </tr></thead><tbody>`;
-    lvlMap.forEach(x=>{
-      tbl+=`<tr style="border-top:1px solid var(--g2)">
-        <td style="padding:5px 0;font-size:10px;font-weight:800;color:${x.col}">${x.lv}</td>
-        <td style="padding:5px 4px;text-align:center">
-          <input type="number" min="1" max="500" value="${t[x.k]}"
-            style="width:52px;padding:3px 5px;border:1.5px solid var(--m10);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)"
-            oninput="uThr('${c}','${x.k}',this.value)"/>
-        </td>
-        <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fa(curr[x.lv])}</td>
-        <td style="padding:5px 0 5px 8px;text-align:right;font-size:10px">${fDelta(x.lv)}</td>
-      </tr>`;
-    });
+    // Member first (lowest level), then Bronze, Silver, Gold
     tbl+=`<tr style="border-top:1px solid var(--g2)">
       <td style="padding:5px 0;font-size:10px;font-weight:800;color:#4B4B6B">Member</td>
       <td style="padding:5px 4px;text-align:center;font-size:9px;color:var(--g3)">&lt; ${t.br} DOs</td>
-      <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fa(curr.Member)}</td>
-      <td style="padding:5px 0 5px 8px;text-align:right;font-size:10px">${fDelta('Member')}</td>
-    </tr></tbody></table>`;
+      <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fN(avgByLv['Member'])}</td>
+      <td style="padding:5px 4px;text-align:right;font-size:10px;color:var(--g4)">${fa(curr.Member)}</td>
+      <td style="padding:5px 0 5px 4px;text-align:right;font-size:10px;color:var(--g4)">${pctOf('Member')}</td>
+    </tr>`;
+    lvlMap.forEach(x=>{
+      tbl+=`<tr style="border-top:1px solid var(--g2)">
+        <td style="padding:5px 0;font-size:10px;font-weight:800;color:${x.col}">${x.lv}</td>
+        <td style="padding:5px 4px;text-align:center"><input type="number" min="1" max="500" value="${t[x.k]}" style="width:52px;padding:3px 5px;border:1.5px solid var(--m10);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)" oninput="uThr('${c}','${x.k}',this.value)"/></td>
+        <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fN(avgByLv[x.lv])}</td>
+        <td style="padding:5px 4px;text-align:right;font-size:10px;color:var(--g4)">${fa(curr[x.lv])}</td>
+        <td style="padding:5px 0 5px 4px;text-align:right;font-size:10px;color:var(--g4)">${pctOf(x.lv)}</td>
+      </tr>`;
+    });
+    tbl+=`</tbody></table>`;
     uc.innerHTML=tbl;
   }else{
-    const g=S.gr[c][lv],tsc=getThrScales(c)[lv],ud=Math.round((yr===2026?D[c][lv].u26:D[c][lv].u27)[11]*g*tsc);
+    const g=S.gr[c][lv],tsc=getThrScales(c)[lv];
+    const curr=calcDistCounts(c,S.thr[c]),base=calcDistCounts(c,BASE_THR[c]);
+    const totalU=curr.Member+curr.Bronce+curr.Plata+curr.Gold;
     const t=S.thr[c],thrKey=lv==='Gold'?'go':lv==='Plata'?'si':'br';
-    const base=calcDistCounts(c,BASE_THR[c]),curr=calcDistCounts(c,t);
     const d=(curr[lv]-base[lv])/Math.max(base[lv],1);
-    uc.innerHTML=`<div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">M&iacute;n. DOs anuales</div>
+    const pct=(totalU>0?(curr[lv]/totalU*100).toFixed(1)+'%':'—');
+    uc.innerHTML=`<div style="font-size:9px;font-weight:700;color:var(--g3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Mín. DOs anuales</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-size:10px;font-weight:700;color:${LC[lv]}">${lv}</span>
-        <input type="number" min="1" max="500" value="${t[thrKey]}"
-          style="width:60px;padding:4px 8px;border:1.5px solid var(--m10);border-radius:7px;font-size:13px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)"
-          oninput="uThr('${c}','${thrKey}',this.value)"/>
+        <input type="number" min="1" max="500" value="${t[thrKey]}" style="width:60px;padding:4px 8px;border:1.5px solid var(--m10);border-radius:7px;font-size:13px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)" oninput="uThr('${c}','${thrKey}',this.value)"/>
         <span style="font-size:9px;color:var(--g3)">DO+</span>
       </div>
-      <div style="background:var(--m0);border-radius:7px;padding:6px 10px;font-size:10px;display:flex;justify-content:space-between">
-        <span>Base: <b>${fa(base[lv])}</b></span>
-        <span>Ahora: <b style="color:${Math.abs(d)>0.005?(d>0?'var(--grn)':'var(--red)'):'var(--blk)'}">${fa(curr[lv])}</b>
-          ${Math.abs(d)>0.005?`<span style="color:${d>0?'var(--grn)':'var(--red)'}"> (${d>0?'+':''}${(d*100).toFixed(1)}%)</span>`:''}
-        </span>
+      <div style="background:var(--m0);border-radius:7px;padding:6px 10px;font-size:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <span>Usu/mes: <b style="color:var(--m60)">${fN(avgByLv[lv])}</b></span>
+        <span>Dist.: <b>${fa(curr[lv])}</b> ${Math.abs(d)>0.005?`<span style="color:${d>0?'var(--grn)':'var(--red)'}"> (${d>0?'+':''}${(d*100).toFixed(1)}%)</span>`:''}</span>
+        <span style="color:var(--g4)">% total: <b>${pct}</b></span>
       </div>`;
   }
 
-  document.getElementById("bt2").textContent="Beneficios \u00B7 "+c+" "+(ia?"ALL":lv)+" \u00B7 "+yr;
+  document.getElementById("bt2").textContent="Beneficios · "+c+" "+(ia?"ALL":lv)+" · "+yr;
   const bel=document.getElementById("bc"),yk=yr===2026?"26":"27";
   if(ia){
-    const ptsTot=c2.reduce((s,r)=>s+(r.pts||0),0);
-    bel.innerHTML=`<div class="an">Vista agregada \u2014 selecciona un nivel para editar.</div>`+
-      BKS.map(bk=>{const t=c2.reduce((s,r)=>s+r[bk],0);
-        return t>0?`<div class="ab"><span>${BI[bk]} ${bk}</span><span style="font-family:monospace;font-weight:700;color:var(--red)">-${fE(t)}</span></div>`:""}).join("")+
-      (ptsTot>0?`<div class="ab"><span>\uD83C\uDFAF Puntos canjeables</span><span style="font-family:monospace;font-weight:700;color:var(--red)">-${fE(ptsTot)}</span></div>`:"");
+    bel.innerHTML=`<div class="an">Vista agregada — selecciona un nivel para editar.</div>`+
+      BKS.map(bk=>{const t=c2.reduce((s,r)=>s+r[bk],0);return t>0?`<div class="ab"><span>${BI[bk]} ${bk}</span><span style="font-family:monospace;font-weight:700;color:var(--red)">-${fM(t,c)}</span></div>`:""}).join("");
   }else{
-    const ben=S.ben[c][lv],pts=S.pts[c][lv],au12=D[c][lv].au/12;
+    const ben=S.ben[c][lv],au12=D[c][lv].au/12;
     bel.innerHTML=BKS.map(bk=>{
       const annual=c2.reduce((s,r)=>s+r[bk],0);
       const tu=ben[bk]["tu"+yk],cu=ben[bk]["cu"+yk],isV=bk===VIAJE;
       return `<div class="br2">
         <div class="bh"><span class="bn">${BI[bk]} ${bk}</span>
-          <span class="bc ${annual===0?"z":""}">${annual>0?"-\u20AC"+fN(annual):"\u2014"}</span></div>
-        ${isV?`<div style="font-size:9px;color:var(--g3);margin-bottom:5px">Base: <b>${fN(au12)}</b> usu/mes (anuales \u00F7 12)</div>`:""}
+          <span class="bc ${annual===0?"z":""}">${annual>0?"-"+fM(annual,c):"—"}</span></div>
+        ${isV?`<div style="font-size:9px;color:var(--g3);margin-bottom:5px">Base: <b>${fN(au12)}</b> usu/mes (anuales ÷ 12)</div>`:""}
         <div class="bi">
           <div class="iw"><label class="il">Tasa uso %</label>
-            <div class="if"><input type="number" step="0.1" value="${(tu*100).toFixed(1)}"
-              onchange="uB('${c}','${lv}','${bk}','tu',this.value/100,${yr})"/><span class="is">%</span></div></div>
-          <div class="iw"><label class="il">Coste unit. \u20AC</label>
-            <div class="if"><input type="number" step="0.01" value="${cu.toFixed(2)}"
-              onchange="uB('${c}','${lv}','${bk}','cu',this.value,${yr})"/><span class="is">\u20AC</span></div></div>
-        </div></div>`;}).join("")+
-    `<div class="pts-card">
-      <div class="pts-t">\uD83C\uDFAF Puntos canjeables &nbsp;<span style="font-family:monospace;color:var(--red);font-weight:700">${c2.reduce((s,r)=>s+(r.pts||0),0)>0?"-\u20AC"+fN(c2.reduce((s,r)=>s+(r.pts||0),0)):"\u2014"}</span></div>
-      <div class="bi">
-        <div class="iw"><label class="il">Tasa uso %</label>
-          <div class="if"><input type="number" step="0.1" value="${(pts["tu"+yk]*100).toFixed(1)}"
-            onchange="uPts('${c}','${lv}','tu',this.value/100,${yr})"/><span class="is">%</span></div></div>
-        <div class="iw"><label class="il">Avg pts/mes</label>
-          <div class="if"><input type="number" step="0.1" value="${pts["avg"+yk].toFixed(1)}"
-            onchange="uPts('${c}','${lv}','avg',this.value,${yr})"/><span class="is">pts</span></div></div>
-      </div>
-      <div style="margin-top:6px" class="bi">
-        <div class="iw"><label class="il">Coste/punto \u20AC</label>
-          <div class="if"><input type="number" step="0.001" value="${pts.cpp.toFixed(3)}"
-            onchange="uPts('${c}','${lv}','cpp',this.value,${yr})"/><span class="is">\u20AC</span></div></div>
-        <div style="font-size:9px;color:var(--g3);padding-top:16px">f: usuarios \u00D7 tu \u00D7 avg \u00D7 cpp</div>
-      </div>
-    </div>`;
+            <div class="if" style="background:#F3F4F6;border-color:#E5E7EB"><span class="ro-val">${(tu*100).toFixed(1)}</span><span class="is">%</span></div></div>
+          <div class="iw"><label class="il">Coste unit.</label>
+            <div class="if" style="background:#F3F4F6;border-color:#E5E7EB"><span class="ro-val">${cu.toFixed(2)}</span><span class="is">$</span></div></div>
+        </div></div>`;}).join("");
   }
 
-  const trs=[
-    {l:"Usuarios",k:"users",  f:v=>fN(v),              col:"var(--blk)"},
-    {l:"Reg. %",  k:"regRate",f:v=>fP(v),              col:"var(--g4)"},
-    {l:"Costes",  k:"costes", f:v=>"-\u20AC"+fN(v),    col:"var(--red)"},
-    {l:"EBITDA",  k:"ebitda", f:v=>v<0?"-\u20AC"+fN(-v):"\u20AC"+fN(v), col:"var(--m60)",bold:true},
-  ];
-  document.getElementById("tb").innerHTML=trs.map((row,ri)=>
-    `<div class="tr" style="background:${ri%2===0?"white":"var(--g1)"}"><span>${row.l}</span>
-      ${c2.map(x=>{const v=x[row.k],cl=row.k==="ebitda"&&v<0?"var(--red)":row.col;
-        return `<span style="color:${cl};font-weight:${row.bold?700:400}">${row.f(v)}</span>`;}).join("")}
-    </div>`).join("");
-  document.getElementById("tf").innerHTML=`<span style="color:var(--m60)">TOTAL ${yr}</span>`+
-    c2.map(r=>`<span style="color:${r.ebitda<0?"var(--red)":"var(--grn)"}">${r.ebitda<0?"-\u20AC"+fN(-r.ebitda):"\u20AC"+fN(r.ebitda)}</span>`).join("");
+  // Other investments card
+  const oic=document.getElementById("oic");
+  const curSym=S.currency==='LCY'?(CUR_SYM[c]||'$'):'$';
+  oic.innerHTML=`<div style="font-size:9px;color:var(--g3);margin-bottom:8px">Costes adicionales mensuales fijos para ${c}</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="if" style="width:auto"><input type="number" min="0" step="100" value="${S.otherInv[c]||0}" onchange="uOtherInv('${c}',this.value)" style="width:80px"/><span class="is">${curSym}/mes</span></div>
+      ${(S.otherInv[c]||0)>0?`<span style="font-size:10px;color:var(--g4)">→ ${fM((S.otherInv[c]||0)*12,c)} anuales</span>`:''}
+    </div>`;
 
-  const pl=allPL(S.c,yr),ae=pl.ALL.reduce((s,r)=>s+r.ebitda,0);
-  document.getElementById("lt").textContent=c+" \u00B7 EBITDA \u00B7 "+yr;
+  // Monthly table
+  const trs=[
+    {l:"Usuarios",k:"users",f:v=>fN(v),col:"var(--blk)"},
+    {l:"Reg. %",k:"regRate",f:v=>fP(v),col:"var(--g4)"},
+  ];
+  // benefit rows
+  const activeBKS=BKS.filter(bk=>c2.some(r=>r[bk]>0));
+  let tbHtml=trs.map((row,ri)=>
+    `<div class="tr" style="background:${ri%2===0?"white":"var(--g1)"}"><span>${row.l}</span>
+      ${c2.map(x=>`<span style="color:${row.col}">${row.f(x[row.k])}</span>`).join("")}
+    </div>`).join("");
+  activeBKS.forEach((bk,i)=>{
+    tbHtml+=`<div class="tr" style="background:${(i+trs.length)%2===0?"white":"var(--g1)"}"><span style="font-size:8px">${BI[bk]}</span>
+      ${c2.map(x=>`<span style="color:var(--blk)">${x[bk]>0?fM(x[bk],c):'—'}</span>`).join("")}
+    </div>`;
+  });
+  const hasOther=c2.some(r=>(r.otherInv||0)>0);
+  if(hasOther){
+    tbHtml+=`<div class="tr" style="background:var(--g1)"><span style="font-size:8px">Otras inv.</span>
+      ${c2.map(x=>`<span style="color:var(--blk)">${(x.otherInv||0)>0?fM(x.otherInv,c):'—'}</span>`).join("")}
+    </div>`;
+  }
+  document.getElementById("tb").innerHTML=tbHtml;
+  document.getElementById("tf").innerHTML=`<span style="color:var(--m60)">Total Inv. ${yr}</span>`+
+    c2.map(r=>`<span style="color:var(--blk);font-weight:800">${fM(r.costes,c)}</span>`).join("");
+
+  const pl=allPL(S.c,yr),aI=pl.ALL.reduce((s,r)=>s+r.costes,0);
+  document.getElementById("lt").textContent=c+" · Inversión · "+yr;
   let lh=`<div class="lc ${ia?"dk":""}" onclick="sL('ALL')"><div class="ll">ALL</div>
-    <div class="lv2" style="color:${ae<0?"var(--red)":"var(--grn)"}">${fE(ae)}</div></div>`;
-  LV.forEach(l=>{const e=pl[l].reduce((s,r)=>s+r.ebitda,0),u=pl[l].reduce((s,r)=>s+r.users,0)/12,act=lv===l;
+    <div class="lv2" style="color:${ia?"white":"var(--blk)"}">${fM(aI,c)}</div></div>`;
+  LV.forEach(l=>{const inv=pl[l].reduce((s,r)=>s+r.costes,0),u=pl[l].reduce((s,r)=>s+r.users,0)/12,act=lv===l;
     lh+=`<div class="lc ${act?"a":""}" onclick="sL('${l}')" style="border-color:${act?LC[l]:"#F3F0FF"}">
-      <div class="ll">${l}</div><div class="lv2" style="color:${e<0?"var(--red)":"var(--grn)"}">${fE(e)}</div>
+      <div class="ll">${l}</div><div class="lv2" style="color:var(--blk)">${fM(inv,c)}</div>
       <div class="ls">${fN(u)} avg</div></div>`;});
   document.getElementById("lg").innerHTML=lh;
-  renderBenActive(c);
-  rChart(); uPills();
+  renderBenActive(c,lv);
+  rChart();uPills();
 }
 
 function rGlobal(){
-  const yr=S.yr,ge=calcGlobalEBITDA();
-  document.getElementById("gk").innerHTML=CS.map(c=>{const e=calcALL(c,yr).reduce((s,r)=>s+r.ebitda,0);
-    return `<div class="kpi ${e<0?"ng":""}"><span class="kl">${c}</span>
-      <span class="kv" style="color:${e<0?"var(--red)":CC[c]}">${fE(e)}</span>
-      <span class="ks">EBITDA ${yr}</span></div>`;}).join("");
-  document.getElementById("gct").textContent="EBITDA mensual \u00B7 "+yr+" \u00B7 Total: "+fE(ge);
-  document.getElementById("gd").innerHTML=CS.map(c=>{const pl=allPL(c,yr),tot=pl.ALL.reduce((s,r)=>s+r.ebitda,0);
-    return `<div class="cd"><div class="cdt" style="color:${CC[c]}">${c}</div>
-      ${LV.map(l=>{const e=pl[l].reduce((s,r)=>s+r.ebitda,0);
-        return `<div class="cdr" onclick="sC('${c}');sL('${l}');sM()"><span>${l}</span>
-          <span style="color:${e<0?"var(--red)":"var(--grn)"}">${fE(e)}</span></div>`;}).join("")}
-      <div class="cdo"><span>TOTAL</span><span style="color:${tot<0?"var(--red)":"var(--grn)"}">${fE(tot)}</span></div>
+  const yr=S.yr,gi=calcGlobalInv();
+  document.getElementById("gk").innerHTML=CS.map(c=>{const inv=calcALL(c,yr).reduce((s,r)=>s+r.costes,0);
+    return`<div class="kpi"><span class="kl">${c}</span>
+      <span class="kv" style="color:${CC[c]}">${fM(inv,c)}</span>
+      <span class="ks">Inversión ${yr}</span></div>`;}).join("");
+  document.getElementById("gct").textContent="Inversión mensual · "+yr+" · Total: $"+fa(gi);
+  document.getElementById("gd").innerHTML=CS.map(c=>{const pl=allPL(c,yr),tot=pl.ALL.reduce((s,r)=>s+r.costes,0);
+    return`<div class="cd"><div class="cdt" style="color:${CC[c]}">${c}</div>
+      ${LV.map(l=>{const inv=pl[l].reduce((s,r)=>s+r.costes,0);
+        return`<div class="cdr" onclick="sC('${c}');sL('${l}');sM()"><span>${l}</span>
+          <span style="color:var(--blk)">${fM(inv,c)}</span></div>`;}).join("")}
+      <div class="cdo"><span>TOTAL</span><span style="color:var(--blk)">${fM(tot,c)}</span></div>
     </div>`;}).join("");
-  rGChart(); uPills();
+
+  // GMV section
+  const gmvEl=document.getElementById("gmv-content");
+  let gmvHtml=`<div style="display:grid;grid-template-columns:repeat(6,1fr) auto;gap:10px;align-items:center;margin-bottom:8px">`;
+  let totalInv2026=0,totalGMV2025=0;
+  CS.forEach(c=>{
+    const ann=calcALL(c,2026).reduce((s,r)=>s+r.costes,0);
+    const pct=(ann/GMV_2025_ANNUAL[c]*100).toFixed(2);
+    totalInv2026+=ann;totalGMV2025+=GMV_2025_ANNUAL[c];
+    gmvHtml+=`<div style="background:var(--g1);border-radius:9px;padding:10px;border:1.5px solid var(--m10)">
+      <div style="font-size:10px;font-weight:800;color:${CC[c]};margin-bottom:4px">${c}</div>
+      <div style="font-size:14px;font-weight:800;color:var(--blk)">${pct}%</div>
+      <div style="font-size:9px;color:var(--g3);margin-top:2px">${fM(ann,c)} / $${fa(GMV_2025_ANNUAL[c])}</div>
+    </div>`;
+  });
+  const totalPct=(totalInv2026/totalGMV2025*100).toFixed(2);
+  gmvHtml+=`<div style="background:var(--blk);border-radius:9px;padding:10px">
+    <div style="font-size:10px;font-weight:800;color:var(--g3);margin-bottom:4px">TOTAL</div>
+    <div style="font-size:14px;font-weight:800;color:white">${totalPct}%</div>
+    <div style="font-size:9px;color:var(--g4);margin-top:2px">$${fa(totalInv2026)} / $${fa(totalGMV2025)}</div>
+  </div></div>
+  <div style="font-size:9px;color:var(--g3)">Inversión 2026 como % del GMV anual 2025 por país · GMV en USD</div>`;
+  gmvEl.innerHTML=gmvHtml;
+  rGChart();uPills();
 }
 
 function uPills(){
-  document.querySelectorAll("[data-c]").forEach(b=>{b.className="pill";b.style.background="";b.style.color="";
-    if(!S.gl&&!S.cmp&&b.dataset.c===S.c){b.style.background=CC[S.c];b.style.color="white";}});
-  document.querySelectorAll("[data-lv]").forEach(b=>{b.className="pill";b.style.background="";b.style.color="";
-    if(!S.gl&&!S.cmp&&b.dataset.lv===S.lv){b.style.background=b.dataset.lv==="ALL"?"white":"#7145D6";b.style.color=b.dataset.lv==="ALL"?"#1B1B25":"white";}});
+  document.querySelectorAll("[data-c]").forEach(b=>{b.className="pill";b.style.background="";b.style.color="";if(!S.gl&&!S.cmp&&b.dataset.c===S.c){b.style.background=CC[S.c];b.style.color="white";}});
+  document.querySelectorAll("[data-lv]").forEach(b=>{b.className="pill";b.style.background="";b.style.color="";if(!S.gl&&!S.cmp&&b.dataset.lv===S.lv){b.style.background=b.dataset.lv==="ALL"?"white":"#7145D6";b.style.color=b.dataset.lv==="ALL"?"#1B1B25":"white";}});
   const gb=document.getElementById("bg-btn");gb.className="pill";
   if(S.gl){gb.style.background="var(--amb)";gb.style.color="white";}
-  document.querySelectorAll(".tb").forEach(b=>{const t=b.textContent.toLowerCase();
-    b.classList.toggle("a",(S.v==="e"&&t==="ebitda")||(S.v==="c"&&t==="costes")||(S.v==="s"&&t==="apilado"));});
+  document.querySelectorAll(".tb").forEach(b=>{const t=b.textContent.toLowerCase();b.classList.toggle("a",(S.v==="e"&&(t==="inversión"||t==="ebitda"))||(S.v==="c"&&t==="costes")||(S.v==="s"&&t==="apilado"));});
   document.querySelectorAll(".yb").forEach(b=>b.classList.toggle("a",parseInt(b.textContent)===S.yr));
 }
 
-function sC(c){
-  S.c=c;S.gl=false;S.cmp=false;
-  document.getElementById("btn-compare").classList.remove("on");
-  sM();render();
-  if(document.getElementById('thr-panel').classList.contains('show')) renderThrPanel();
-}
+function sC(c){S.c=c;S.gl=false;S.cmp=false;document.getElementById("btn-compare").classList.remove("on");sM();render();if(document.getElementById('thr-panel').classList.contains('show'))renderThrPanel();}
 function sL(l){S.lv=l;S.gl=false;S.cmp=false;document.getElementById("btn-compare").classList.remove("on");sM();render();}
 function sY(y){S.yr=y;if(S.gl)rGlobal();else if(S.cmp)renderCompare();else render();}
 function sV(v){S.v=v;rChart();uPills();}
@@ -1045,13 +1003,8 @@ function sM(){document.getElementById("main").style.display="flex";document.getE
 function sMC(){document.getElementById("main").style.display="none";document.getElementById("gv").style.display="none";document.getElementById("cmp-view").style.display="flex";}
 function sG(){document.getElementById("main").style.display="none";document.getElementById("gv").style.display="flex";document.getElementById("cmp-view").style.display="none";}
 function tG(){S.gl=!S.gl;S.cmp=false;document.getElementById("btn-compare").classList.remove("on");if(S.gl){sG();rGlobal();}else{sM();render();}}
-function uG(c,l,v){S.gr[c][l]=parseFloat(v);const el=document.getElementById("gv-"+l);if(el)el.textContent="\u00D7"+parseFloat(v).toFixed(1);render();}
-function uB(c,l,bk,p,v,yr){const val=parseFloat(v)||0,yk=yr===2026?"26":"27";
-  if(p==="tu")S.ben[c][l][bk]["tu"+yk]=val;else S.ben[c][l][bk]["cu"+yk]=val;render();}
-function uPts(c,l,p,v,yr){const val=parseFloat(v)||0,yk=yr===2026?"26":"27";
-  if(p==="tu")S.pts[c][l]["tu"+yk]=val;
-  else if(p==="avg")S.pts[c][l]["avg"+yk]=val;
-  else S.pts[c][l].cpp=val;render();}
+function uG(c,l,v){S.gr[c][l]=parseFloat(v);const el=document.getElementById("gv-"+l);if(el)el.textContent="×"+parseFloat(v).toFixed(1);render();}
+function uB(c,l,bk,p,v,yr){const val=parseFloat(v)||0,yk=yr===2026?"26":"27";if(p==="tu")S.ben[c][l][bk]["tu"+yk]=val;else S.ben[c][l][bk]["cu"+yk]=val;render();}
 
 renderScenBar();
 render();
