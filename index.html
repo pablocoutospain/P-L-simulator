@@ -487,14 +487,17 @@ function makeBenCrit(c){
   const plataBP=D[c]['Plata'].b['Bloqueo precio']['cu'+yk];
   const plataER=D[c]['Plata'].b['Extra referral']['cu'+yk];
   const goldVG=D[c]['Gold'].b[VIAJE]['cu'+yk];
+  const bronceMI=D[c]['Bronce'].b['Millas']['cu'+yk];
   const crit={};
   LV.forEach(l=>{
     const cuBP=D[c][l].b['Bloqueo precio']['cu'+yk];
     const cuER=D[c][l].b['Extra referral']['cu'+yk];
     const cuVG=D[c][l].b[VIAJE]['cu'+yk];
+    const cuMI=D[c][l].b['Millas']['cu'+yk];
     crit[l]={
       'Bloqueo precio':{n: plataBP>0 ? cuBP/plataBP : 0},
       'Extra referral':{n: plataER>0 ? cuER/plataER : 0},
+      'Millas':{n: bronceMI>0 ? cuMI/bronceMI : 0},
       'Cashback':{pct:0},
       [VIAJE]:{pct: goldVG>0 ? cuVG/goldVG*100 : 0},
     };
@@ -508,11 +511,15 @@ const S={c:"AR",lv:"ALL",yr:2026,v:"e",gl:false,cmp:false,cmpScen:null,currency:
 function initState(target){
   CS.forEach(c=>{
     target.gr[c]={};target.ben[c]={};target.benActive[c]={};target.benCrit[c]={};target.otherInv[c]=0;
-    BKS.forEach(bk=>target.benActive[c][bk]=true);
     const defCrit=makeBenCrit(c);
     LV.forEach(l=>{
       target.gr[c][l]=1;target.ben[c][l]={};
-      BKS.forEach(bk=>{const b=D[c][l].b[bk];target.ben[c][l][bk]={tu26:b.tu26,tu27:b.tu27,cu26:b.cu26,cu27:b.cu27};});
+      target.benActive[c][l]={};
+      BKS.forEach(bk=>{
+        const b=D[c][l].b[bk];
+        target.ben[c][l][bk]={tu26:b.tu26,tu27:b.tu27,cu26:b.cu26,cu27:b.cu27};
+        target.benActive[c][l][bk]=true;
+      });
       target.benCrit[c][l]=JSON.parse(JSON.stringify(defCrit[l]));
     });
     target.thr[c]={...BASE_THR[c]};
@@ -534,7 +541,8 @@ function applyState(snap){
   S.otherInv=snap.otherInv?JSON.parse(JSON.stringify(snap.otherInv)):{};
   CS.forEach(c=>{
     if(!S.thr[c])S.thr[c]={...BASE_THR[c]};
-    if(!S.benActive[c]){S.benActive[c]={};BKS.forEach(bk=>S.benActive[c][bk]=true);}
+    if(!S.benActive[c]){S.benActive[c]={};}
+    LV.forEach(l=>{if(!S.benActive[c][l]){S.benActive[c][l]={};BKS.forEach(bk=>S.benActive[c][l][bk]=true);}});
     if(!S.benCrit[c])S.benCrit[c]={};
     if(S.otherInv[c]===undefined)S.otherInv[c]=0;
     LV.forEach(l=>{
@@ -543,7 +551,7 @@ function applyState(snap){
   });
 }
 
-function uBenActive(c,bk){S.benActive[c][bk]=!S.benActive[c][bk];render();if(S.gl)rGlobal();}
+function uBenActive(c,l,bk){S.benActive[c][l][bk]=!S.benActive[c][l][bk];render();if(S.gl)rGlobal();}
 function uBenCrit(c,l,bk,field,val){
   const v=parseFloat(val)||0;
   if(!S.benCrit[c][l][bk])S.benCrit[c][l][bk]={};
@@ -554,40 +562,37 @@ function uOtherInv(c,val){S.otherInv[c]=parseFloat(val)||0;render();if(S.gl)rGlo
 function setCur(cur){S.currency=cur;document.getElementById('cur-usd').classList.toggle('a',cur==='USD');document.getElementById('cur-lcy').classList.toggle('a',cur==='LCY');render();if(S.gl)rGlobal();}
 
 function renderBenActive(c,lv){
-  const ba=S.benActive[c];
   const ia=lv==='ALL';
-  document.getElementById('bat').textContent='Beneficios activos · '+c;
+  document.getElementById('bat').textContent='Beneficios activos · '+c+(ia?'':' · '+lv);
   if(ia){
-    // ALL view: just toggle chips
-    document.getElementById('bac').innerHTML=`
-      <div style="font-size:9px;color:var(--g3);margin-bottom:8px">Haz clic para activar/desactivar en el cálculo</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${BKS.map(bk=>{const on=ba[bk]!==false;return`<button onclick="uBenActive('${c}','${bk}')" style="padding:5px 10px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};font-size:10px;font-weight:700;cursor:pointer;text-decoration:${on?'none':'line-through'}">${BI[bk]} ${bk}</button>`;}).join('')}
-      </div>`;
-  } else {
-    // single level: show criteria
-    const l=lv;
-    let rows=BKS.map(bk=>{
-      const on=ba[bk]!==false;
-      const chip=`<button onclick="uBenActive('${c}','${bk}')" style="padding:4px 8px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};font-size:10px;font-weight:700;cursor:pointer;text-decoration:${on?'none':'line-through'};white-space:nowrap">${BI[bk]} ${bk}</button>`;
-      let crit='';
-      if(bk==='Bloqueo precio'){
-        const n=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].n:0;
-        crit=`<input class="ben-crit-input" type="number" min="0" step="1" value="${n}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">bloqueos/usuario</span>`;
-      } else if(bk==='Extra referral'){
-        const n=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].n:0;
-        crit=`<input class="ben-crit-input" type="number" min="0" step="1" value="${n}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">referrals/usuario</span>`;
-      } else if(bk==='Cashback'){
-        const pct=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].pct:0;
-        crit=`<input class="ben-crit-input" type="number" disabled placeholder="-" value="${pct}" style="background:#F3F4F6;color:#9CA3AF"/><span class="ben-crit-label">% cashback (pendiente GMV)</span>`;
-      } else if(bk===VIAJE){
-        const pct=S.benCrit[c][l][bk]?S.benCrit[c][l][bk].pct:100;
-        crit=`<input class="ben-crit-input" type="number" min="0" max="100" step="5" value="${pct}" onchange="uBenCrit('${c}','${l}','${bk}','pct',this.value)"/><span class="ben-crit-label">% viaje cubierto</span>`;
-      }
-      return`<div class="ben-crit-row">${chip}${crit}</div>`;
-    }).join('');
-    document.getElementById('bac').innerHTML=`<div style="font-size:9px;color:var(--g3);margin-bottom:6px">Togglea y ajusta criterios por beneficio</div>${rows}`;
+    document.getElementById('bac').innerHTML=`<div class="an">Vista agregada — selecciona un nivel para activar/desactivar beneficios.</div>`;
+    return;
   }
+  const l=lv;
+  const ba=S.benActive[c][l]||{};
+  let rows=BKS.map(bk=>{
+    const on=ba[bk]!==false;
+    const chip=`<button onclick="uBenActive('${c}','${l}','${bk}')" style="padding:4px 8px;border-radius:7px;border:1.5px solid ${on?'var(--m60)':'#D1D5DB'};background:${on?'var(--m10)':'#F9FAFB'};color:${on?'var(--m60)':'var(--g3)'};font-size:10px;font-weight:700;cursor:pointer;text-decoration:${on?'none':'line-through'};white-space:nowrap">${BI[bk]} ${bk}</button>`;
+    let crit='';
+    const cr=S.benCrit[c][l]&&S.benCrit[c][l][bk]?S.benCrit[c][l][bk]:{};
+    if(bk==='Bloqueo precio'){
+      const n=cr.n!==undefined?cr.n:0;
+      crit=`<input class="ben-crit-input" type="number" min="0" step="0.5" value="${n.toFixed(1)}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">bloqueos/usuario</span>`;
+    } else if(bk==='Extra referral'){
+      const n=cr.n!==undefined?cr.n:0;
+      crit=`<input class="ben-crit-input" type="number" min="0" step="0.5" value="${n.toFixed(1)}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">referrals/usuario</span>`;
+    } else if(bk==='Millas'){
+      const n=cr.n!==undefined?cr.n:0;
+      crit=`<input class="ben-crit-input" type="number" min="0" step="0.5" value="${n.toFixed(1)}" onchange="uBenCrit('${c}','${l}','${bk}','n',this.value)"/><span class="ben-crit-label">multiplicador</span>`;
+    } else if(bk==='Cashback'){
+      crit=`<input class="ben-crit-input" type="number" disabled placeholder="—" style="background:#F3F4F6;color:#9CA3AF"/><span class="ben-crit-label">% cashback (pendiente GMV)</span>`;
+    } else if(bk===VIAJE){
+      const pct=cr.pct!==undefined?cr.pct:100;
+      crit=`<input class="ben-crit-input" type="number" min="0" max="100" step="5" value="${pct.toFixed(0)}" onchange="uBenCrit('${c}','${l}','${bk}','pct',this.value)"/><span class="ben-crit-label">% viaje cubierto</span>`;
+    }
+    return`<div class="ben-crit-row">${chip}${crit}</div>`;
+  }).join('');
+  document.getElementById('bac').innerHTML=`<div style="font-size:9px;color:var(--g3);margin-bottom:6px">Haz clic para activar/desactivar · ajusta criterios</div>${rows}`;
 }
 
 function saveScenario(name){
@@ -681,11 +686,11 @@ function calcLv(c,l,yr,st){
   const au12=D[c][l].au/12;
   const thr=st.thr?st.thr[c]:BASE_THR[c];
   const tsc=getThrScales(c,thr)[l];
-  const ba=st.benActive?st.benActive[c]:{};
+  const ba=(st.benActive&&st.benActive[c]&&st.benActive[c][l])?st.benActive[c][l]:{};
   const bc=st.benCrit&&st.benCrit[c]&&st.benCrit[c][l]?st.benCrit[c][l]:{};
   return MO.map((_,i)=>{
-    const u=us[i]*m*tsc,on=y6?i>=6:true,yk=yr===2026?"26":"27";
-    const row={users:Math.round(u),regRate:reg[i]};
+    const r=reg[i],u=us[i]*m*tsc*r,on=y6?i>=6:true,yk=yr===2026?"26":"27";
+    const row={users:Math.round(us[i]*m*tsc),regRate:r};
     let tot=0;
     BKS.forEach(bk=>{
       const active=ba[bk]!==false;
@@ -695,10 +700,10 @@ function calcLv(c,l,yr,st){
       if(bk==='Cashback'){
         cost=0;
       } else if(bk===VIAJE){
-        // base = Gold's cu (100% trip); pct scales from there
+        // base = Gold's cu (100% trip); pct scales from there; reg rate applied to au12
         const goldCu=D[c]['Gold'].b[VIAJE]['cu'+yk];
         const pct=(bc[bk]&&bc[bk].pct!==undefined)?bc[bk].pct/100:cu/(goldCu||1);
-        cost=Math.round(au12*tsc*tu*goldCu*pct);
+        cost=Math.round(au12*tsc*r*tu*goldCu*pct);
       } else if(bk==='Bloqueo precio'){
         // base = Plata's cu (1 unit); n = number of units
         const plataCu=D[c]['Plata'].b[bk]['cu'+yk];
@@ -709,6 +714,11 @@ function calcLv(c,l,yr,st){
         const plataCu=D[c]['Plata'].b[bk]['cu'+yk];
         const n=(bc[bk]&&bc[bk].n!==undefined)?bc[bk].n:0;
         cost=Math.round(u*tu*plataCu*n);
+      } else if(bk==='Millas'){
+        // base = Bronce's cu; n = multiplier per level
+        const bronceCu=D[c]['Bronce'].b[bk]['cu'+yk];
+        const n=(bc[bk]&&bc[bk].n!==undefined)?bc[bk].n:cu/(bronceCu||1);
+        cost=Math.round(u*tu*bronceCu*n);
       } else {
         cost=Math.round(u*tu*cu);
       }
@@ -834,24 +844,21 @@ function render(){
           <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:left;padding:3px 0">Nivel</th>
           <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:center;padding:3px 4px">Min DOs</th>
           <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0">Usu/mes</th>
-          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 4px">Dist.</th>
-          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0 3px 4px">% total</th>
+          <th style="font-size:9px;font-weight:700;color:var(--g3);text-align:right;padding:3px 0 3px 8px">% total</th>
         </tr></thead><tbody>`;
     // Member first (lowest level), then Bronze, Silver, Gold
     tbl+=`<tr style="border-top:1px solid var(--g2)">
       <td style="padding:5px 0;font-size:10px;font-weight:800;color:#4B4B6B">Member</td>
       <td style="padding:5px 4px;text-align:center;font-size:9px;color:var(--g3)">&lt; ${t.br} DOs</td>
       <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fN(avgByLv['Member'])}</td>
-      <td style="padding:5px 4px;text-align:right;font-size:10px;color:var(--g4)">${fa(curr.Member)}</td>
-      <td style="padding:5px 0 5px 4px;text-align:right;font-size:10px;color:var(--g4)">${pctOf('Member')}</td>
+      <td style="padding:5px 0 5px 8px;text-align:right;font-size:10px;color:var(--g4)">${pctOf('Member')}</td>
     </tr>`;
     lvlMap.forEach(x=>{
       tbl+=`<tr style="border-top:1px solid var(--g2)">
         <td style="padding:5px 0;font-size:10px;font-weight:800;color:${x.col}">${x.lv}</td>
         <td style="padding:5px 4px;text-align:center"><input type="number" min="1" max="500" value="${t[x.k]}" style="width:52px;padding:3px 5px;border:1.5px solid var(--m10);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;text-align:center;outline:none;background:var(--m0);color:var(--blk)" oninput="uThr('${c}','${x.k}',this.value)"/></td>
         <td style="padding:5px 0;text-align:right;font-size:11px;font-family:'DM Mono',monospace;font-weight:700">${fN(avgByLv[x.lv])}</td>
-        <td style="padding:5px 4px;text-align:right;font-size:10px;color:var(--g4)">${fa(curr[x.lv])}</td>
-        <td style="padding:5px 0 5px 4px;text-align:right;font-size:10px;color:var(--g4)">${pctOf(x.lv)}</td>
+        <td style="padding:5px 0 5px 8px;text-align:right;font-size:10px;color:var(--g4)">${pctOf(x.lv)}</td>
       </tr>`;
     });
     tbl+=`</tbody></table>`;
@@ -890,6 +897,7 @@ function render(){
       let displayCu=cu;
       if(bk==='Bloqueo precio') displayCu=D[c]['Plata'].b[bk]['cu'+yk];
       else if(bk==='Extra referral') displayCu=D[c]['Plata'].b[bk]['cu'+yk];
+      else if(bk==='Millas') displayCu=D[c]['Bronce'].b[bk]['cu'+yk];
       else if(isV) displayCu=D[c]['Gold'].b[bk]['cu'+yk];
       return `<div class="br2">
         <div class="bh"><span class="bn">${BI[bk]} ${bk}</span>
