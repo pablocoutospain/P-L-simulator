@@ -886,6 +886,11 @@ function render(){
     bel.innerHTML=BKS.map(bk=>{
       const annual=c2.reduce((s,r)=>s+r[bk],0);
       const tu=ben[bk]["tu"+yk],cu=ben[bk]["cu"+yk],isV=bk===VIAJE;
+      // For display: show the BASE unit cost (single unit), not the level multiplied value
+      let displayCu=cu;
+      if(bk==='Bloqueo precio') displayCu=D[c]['Plata'].b[bk]['cu'+yk];
+      else if(bk==='Extra referral') displayCu=D[c]['Plata'].b[bk]['cu'+yk];
+      else if(isV) displayCu=D[c]['Gold'].b[bk]['cu'+yk];
       return `<div class="br2">
         <div class="bh"><span class="bn">${BI[bk]} ${bk}</span>
           <span class="bc ${annual===0?"z":""}">${annual>0?"-"+fM(annual,c):"—"}</span></div>
@@ -894,7 +899,7 @@ function render(){
           <div class="iw"><label class="il">Tasa uso %</label>
             <div class="if" style="background:#F3F4F6;border-color:#E5E7EB"><span class="ro-val">${(tu*100).toFixed(1)}</span><span class="is">%</span></div></div>
           <div class="iw"><label class="il">Coste unit.</label>
-            <div class="if" style="background:#F3F4F6;border-color:#E5E7EB"><span class="ro-val">${cu.toFixed(2)}</span><span class="is">$</span></div></div>
+            <div class="if" style="background:#F3F4F6;border-color:#E5E7EB"><span class="ro-val">${displayCu.toFixed(2)}</span><span class="is">$</span></div></div>
         </div></div>`;}).join("");
   }
 
